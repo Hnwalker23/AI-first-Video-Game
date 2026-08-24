@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ORIGIN: The Choice Is Yours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Oswald:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14141f;
+    --paper:#f2ede1;
+    --paper-dim:#e7e0cf;
+    --hero:#2f5fb3;
+    --villain:#c1272d;
+    --vigilante:#7b5ea7;
+    --pow:#f5c542;
+    --outline:#0b0b12;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(circle, rgba(11,11,18,0.08) 1px, transparent 1.2px) 0 0/14px 14px,
+      var(--ink);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:20px 10px 40px;
+    user-select:none;
+  }
+  .display{font-family:'Bangers', cursive; letter-spacing:1px;}
+  #app{ width:100%; max-width:920px; }
+
+  .panel{
+    background:var(--paper);
+    border:4px solid var(--outline);
+    border-radius:4px;
+    box-shadow:8px 8px 0 rgba(0,0,0,0.45);
+    padding:26px 24px;
+    position:relative;
+    animation:fadein .3s ease;
+  }
+  @keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1;}}
+  .chapter-tag{
+    display:inline-block; font-family:'Oswald'; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+    font-size:11px; background:var(--outline); color:var(--pow); padding:4px 10px; border-radius:3px; margin-bottom:14px;
+  }
+  h1.title{font-family:'Bangers'; font-size:52px; line-height:1; margin:0 0 6px; color:var(--outline);}
+  h2.subtitle{font-family:'Bangers'; font-size:26px; margin:0 0 14px; color:var(--outline);}
+  p{font-size:15.5px; line-height:1.55; margin:0 0 14px; color:#2a2a34;}
+  .flavor{font-style:italic; color:#5a5a68; border-left:3px solid var(--pow); padding-left:12px; margin:14px 0;}
+  .choices{display:flex; flex-direction:column; gap:9px; margin-top:16px;}
+  button.choice{
+    font-family:'Work Sans'; font-weight:600; font-size:14.5px; text-align:left;
+    background:var(--paper); border:2.5px solid var(--outline); border-radius:8px; padding:12px 14px;
+    cursor:pointer; color:var(--outline); box-shadow:3px 3px 0 var(--outline);
+    transition:transform .1s ease, box-shadow .1s ease;
+  }
+  button.choice:hover{transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--outline); background:#fffdf6;}
+  button.choice:active{transform:translate(1px,1px); box-shadow:1px 1px 0 var(--outline);}
+  button.choice:disabled{opacity:.35; cursor:default;}
+  button.primary{
+    font-family:'Bangers'; font-size:19px; letter-spacing:1px; background:var(--pow);
+    border:3px solid var(--outline); border-radius:8px; padding:13px 20px; cursor:pointer; color:var(--outline);
+    box-shadow:4px 4px 0 var(--outline); transition:transform .1s ease, box-shadow .1s ease; display:block; width:100%; margin-top:6px;
+  }
+  button.primary:hover{transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--outline);}
+  button.primary:active{transform:translate(1px,1px); box-shadow:2px 2px 0 var(--outline);}
+  button.primary:disabled{opacity:.4; cursor:not-allowed;}
+  input[type=text]{
+    font-family:'Work Sans'; font-size:16px; width:100%; padding:11px 12px; border:2.5px solid var(--outline);
+    border-radius:6px; margin-bottom:16px; background:#fffdf6; color:var(--outline);
+  }
+  fieldset{border:none; padding:0; margin:0 0 18px;}
+  legend{font-family:'Oswald'; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; font-size:12px; color:#5a5a68; margin-bottom:8px;}
+  .pill-row{display:flex; gap:10px; flex-wrap:wrap;}
+  .pill{font-family:'Oswald'; font-weight:600; font-size:13px; letter-spacing:0.5px; border:2.5px solid var(--outline);
+    border-radius:20px; padding:9px 16px; cursor:pointer; background:#fffdf6; color:var(--outline);}
+  .pill.active{background:var(--outline); color:var(--pow);}
+  .loc-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  @media(max-width:520px){.loc-grid{grid-template-columns:1fr;}}
+  .loc-card{border:2.5px solid var(--outline); border-radius:8px; padding:12px 14px; cursor:pointer; background:#fffdf6;}
+  .loc-card.active{background:var(--outline); color:var(--paper);}
+  .loc-card .lname{font-family:'Oswald'; font-weight:700; letter-spacing:0.5px; font-size:14px;}
+  .loc-card .ldesc{font-size:12.5px; margin-top:3px; opacity:0.75; line-height:1.35;}
+  .hp-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .hp-label{font-family:'Oswald'; font-size:11px; letter-spacing:1px; text-transform:uppercase; width:90px; flex-shrink:0;}
+  .hp-track{flex:1; height:13px; background:#d9d2bf; border:2px solid var(--outline); border-radius:8px; overflow:hidden;}
+  .hp-fill{height:100%; background:var(--villain); transition:width .4s ease;}
+  .powerlist{list-style:none; padding:0; margin:0 0 14px;}
+  .powerlist li{background:var(--paper-dim); border:2px solid var(--outline); border-radius:6px; padding:10px 12px; margin-bottom:8px;}
+  .powerlist .pname{font-family:'Oswald'; font-weight:700; letter-spacing:0.5px; font-size:14px;}
+  .powerlist .pdesc{font-size:13px; color:#5a5a68; margin-top:2px;}
+  .stamp-wrap{display:flex; justify-content:center; margin:8px 0 20px;}
+  .stamp{font-family:'Bangers'; font-size:32px; letter-spacing:2px; border:6px solid currentColor; border-radius:10px;
+    padding:14px 24px; text-align:center; transform:rotate(-6deg) scale(0); animation:stamp-in .45s cubic-bezier(.2,1.4,.4,1) forwards; animation-delay:.15s;}
+  .stamp .sub{display:block; font-family:'Oswald'; font-size:12px; letter-spacing:2px; margin-top:2px;}
+  @keyframes stamp-in{to{transform:rotate(-6deg) scale(1);}}
+  .stamp.hero{color:var(--hero);} .stamp.villain{color:var(--villain);} .stamp.vigilante{color:var(--vigilante);}
+  .final-pcts{display:flex; gap:16px; margin:18px 0; justify-content:center;}
+  .final-pcts div{text-align:center;} .final-pcts .n{font-family:'Bangers'; font-size:22px;}
+  .final-pcts .l{font-family:'Oswald'; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:#5a5a68;}
+
+  .meter-bar{display:flex; gap:6px; margin-bottom:8px; background:rgba(242,237,225,0.08); border:2px solid rgba(242,237,225,0.18); border-radius:10px; padding:8px 10px;}
+  .meter{flex:1; text-align:center;}
+  .meter .pct{font-family:'Bangers'; font-size:19px; color:var(--paper); line-height:1;}
+  .meter .name{font-family:'Oswald'; font-size:9px; letter-spacing:1.2px; color:rgba(242,237,225,0.65); text-transform:uppercase; margin-top:1px;}
+  .meter.hero .pct{color:#7ea1e8;} .meter.villain .pct{color:#e8757c;} .meter.vigilante .pct{color:#b79fe0;}
+  .meter-track{height:4px; border-radius:4px; background:rgba(242,237,225,0.14); margin-top:5px; overflow:hidden;}
+  .meter-fill{height:100%; border-radius:4px;}
+  .meter.hero .meter-fill{background:var(--hero);} .meter.villain .meter-fill{background:var(--villain);} .meter.vigilante .meter-fill{background:var(--vigilante);}
+
+  /* ---- character creator ---- */
+  .creator-wrap{display:flex; gap:20px; align-items:flex-start;}
+  .creator-preview{flex:0 0 220px;}
+  .creator-preview canvas{width:100%; aspect-ratio:3/4; border:3px solid var(--outline); border-radius:8px; background:linear-gradient(#3a4a68,#22283a); display:block;}
+  .preview-hint{text-align:center; font-size:11px; color:#8a8a96; margin-top:6px; font-family:'Oswald'; letter-spacing:0.5px;}
+  .creator-controls{flex:1; min-width:0;}
+  @media(max-width:640px){.creator-wrap{flex-direction:column;} .creator-preview{flex:0 0 auto; width:55%; margin:0 auto 6px;}}
+  .swatch-row{display:flex; gap:9px; flex-wrap:wrap; margin-bottom:4px;}
+  .swatch{width:30px; height:30px; border-radius:50%; border:2.5px solid var(--outline); cursor:pointer; flex-shrink:0;}
+  .swatch.active{box-shadow:0 0 0 3px #fffdf6, 0 0 0 5.5px var(--outline); transform:scale(1.05);}
+
+  /* ---- game screen ---- */
+  #gameWrap{ position:relative; width:100%; }
+  #hud2{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+  #chapterLabel{
+    font-family:'Bangers'; color:var(--pow); font-size:16px; letter-spacing:1px;
+    background:var(--outline); padding:6px 12px; border-radius:6px; white-space:nowrap;
+  }
+  #objective{
+    font-family:'Oswald'; font-size:11px; letter-spacing:0.6px; color:rgba(242,237,225,0.85);
+    background:rgba(11,11,18,0.5); padding:6px 10px; border-radius:6px; text-align:right; flex:1; min-width:160px;
+  }
+  #canvasFrame{
+    border:4px solid var(--outline); border-radius:6px; overflow:hidden; position:relative;
+    box-shadow:8px 8px 0 rgba(0,0,0,0.45); background:#1b1f2e; line-height:0;
+  }
+  #roomCanvas{ display:block; width:100%; aspect-ratio:900/520; touch-action:none; }
+  #roomLabel{
+    position:absolute; top:8px; left:8px; font-family:'Bangers'; font-size:14px; letter-spacing:1px;
+    background:rgba(11,11,18,0.72); color:var(--paper); padding:4px 10px; border-radius:5px; pointer-events:none;
+  }
+  #dayLabel{
+    position:absolute; top:8px; right:8px; font-family:'Oswald'; font-size:10.5px; letter-spacing:1px;
+    background:rgba(11,11,18,0.72); color:rgba(242,237,225,0.8); padding:4px 10px; border-radius:5px; pointer-events:none; text-transform:uppercase;
+  }
+  #promptRow{ display:flex; justify-content:center; margin-top:10px; min-height:44px; }
+  #promptBtn{
+    font-family:'Bangers'; font-size:15px; letter-spacing:0.5px; background:var(--pow); border:3px solid var(--outline);
+    border-radius:8px; padding:9px 18px; cursor:pointer; color:var(--outline); box-shadow:3px 3px 0 var(--outline);
+  }
+  #promptBtn:active{ transform:translate(1px,1px); box-shadow:1px 1px 0 var(--outline); }
+  #promptBtn.hidden{ display:none; }
+  #moveRow{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; gap:14px; }
+  .movebtn{
+    width:64px; height:56px; background:var(--paper); border:2.5px solid var(--outline); border-radius:10px;
+    font-family:'Bangers'; font-size:22px; color:var(--outline); box-shadow:2px 2px 0 var(--outline); cursor:pointer;
+  }
+  .movebtn:active{ transform:translate(1px,1px); box-shadow:none; }
+  .hint{ text-align:center; font-family:'Oswald'; font-size:10.5px; letter-spacing:1px; color:rgba(242,237,225,0.45); margin-top:8px; text-transform:uppercase; }
+
+  /* ---- cutscene overlay ---- */
+  #cutOverlay{ position:absolute; inset:0; background:rgba(11,11,18,0.72); display:flex; align-items:center; justify-content:center; padding:14px; }
+  #cutOverlay.hidden{ display:none; }
+  #cutOverlay .panel{ width:100%; max-height:96%; overflow-y:auto; }
+  .stage-row{ display:flex; justify-content:center; gap:16px; margin-bottom:14px; }
+  .stage-portrait{ text-align:center; }
+  .stage-portrait canvas{ width:110px; height:140px; background:linear-gradient(#3a4a68,#22283a); border:3px solid var(--outline); border-radius:8px; }
+  .stage-portrait.dim canvas{ opacity:0.45; }
+  .stage-portrait .who{ font-family:'Oswald'; font-weight:700; font-size:10.5px; letter-spacing:0.5px; margin-top:4px; text-transform:uppercase; color:#5a5a68; }
+  .cut-solo{ display:flex; justify-content:center; margin-bottom:12px; }
+  .cut-solo canvas{ width:170px; height:220px; background:linear-gradient(#3a4a68,#22283a); border:3px solid var(--outline); border-radius:10px; }
+  .dialogue-box{ min-height:56px; }
+  .dialogue-box .cursor{ display:inline-block; width:8px; }
+
+  footer.note{text-align:center; color:rgba(242,237,225,0.35); font-family:'Oswald'; font-size:11px; letter-spacing:1px; margin-top:16px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<footer class="note">ORIGIN — walk the halls, make the choice, become the story</footer>
+
+<script>
+/* ============================================================
+   APPEARANCE OPTIONS
+   ============================================================ */
+const SKIN_TONES = ["#ffdfc4","#f0c39e","#c68863","#8d5a3b","#5c3a26"];
+const HAIR_COLORS = ["#181210","#3a2414","#7a4a24","#c99a3e","#8a1f1f","#e5e5e5","#3f6bd6","#c23fb0"];
+const HAIR_STYLES = ["bald","short","long","mohawk"];
+const OUTFIT_COLORS = ["#c1272d","#2f5fb3","#14141f","#1f8a4c","#7b5ea7","#e0a318","#e7e0cf","#1e8a8a"];
+const ACCENT_COLORS = ["#14141f","#f5c542","#e7e0cf","#c1272d","#2f5fb3","#1e8a8a","#7b5ea7","#8d5a3b"];
+
+function defaultAppearance(){
+  return { skin:SKIN_TONES[0], hairColor:HAIR_COLORS[0], hairStyle:"short", outfitPrimary:OUTFIT_COLORS[1], outfitAccent:ACCENT_COLORS[1] };
+}
+
+/* ============================================================
+   STORY DATA — powers, locations, chapters, dialogue
+   (content preserved from the original design; only the delivery changed)
+   ============================================================ */
+
+const POWERS = {
+  hydro:{name:"Hydrokinesis", desc:"Command and shape water at will.", loc:"coastal"},
+  storm:{name:"Storm Calling", desc:"Summon wind, rain, and lightning.", loc:"coastal"},
+  tidal:{name:"Tidal Strength", desc:"Physical power that surges like the tide.", loc:"coastal"},
+  aquavoice:{name:"Aquatic Resonance", desc:"Communicate with and command sea life.", loc:"coastal"},
+  geokin:{name:"Stoneform", desc:"Harden skin to living granite on command.", loc:"mountain"},
+  cryo:{name:"Cryokinesis", desc:"Generate and control ice and frost.", loc:"mountain"},
+  windwalk:{name:"Windwalking", desc:"Ride mountain thermals in true flight.", loc:"mountain"},
+  stamina:{name:"Iron Lungs", desc:"Superhuman endurance and stamina.", loc:"mountain"},
+  solar:{name:"Solar Core", desc:"Absorb and release stored sunlight as energy.", loc:"desert"},
+  heat:{name:"Pyrokinesis", desc:"Generate and control intense heat.", loc:"desert"},
+  sand:{name:"Sandforge", desc:"Shape and harden sand into weapons or armor.", loc:"desert"},
+  mirage:{name:"Mirage Weaving", desc:"Bend light to cast convincing illusions.", loc:"desert"},
+  flora:{name:"Verdant Call", desc:"Grow and command plant life instantly.", loc:"forest"},
+  beastspeak:{name:"Beast-Speak", desc:"Communicate with and rally wild animals.", loc:"forest"},
+  regen:{name:"Regeneration", desc:"Heal from wounds at an accelerated rate.", loc:"forest"},
+  camo:{name:"Adaptive Camouflage", desc:"Blend into any surrounding instantly.", loc:"forest"},
+  techno:{name:"Technopathy", desc:"Interface with and control electronics by thought.", loc:"urban"},
+  superstr:{name:"Augmented Strength", desc:"Raw physical power far past human limits.", loc:"urban"},
+  metal:{name:"Ferrokinesis", desc:"Bend and shape metal like clay.", loc:"urban"},
+  construct:{name:"Hard-Light Constructs", desc:"Build solid tools and shields from raw energy.", loc:"urban"},
+  telekin:{name:"Telekinesis", desc:"Move objects and people with pure will.", loc:"universal"},
+  speed:{name:"Velocity", desc:"Move, think, and react at superhuman speed.", loc:"universal"},
+  telepath:{name:"Telepathy", desc:"Read surface thoughts and project your own.", loc:"universal"},
+  invuln:{name:"Density Shift", desc:"Turn near-invulnerable at will.", loc:"universal"}
+};
+
+const LOCATIONS = [
+  {id:"coastal", name:"Bay Harbor High", tagline:"A coastal city where the docks never sleep.", pool:["hydro","storm","tidal","aquavoice"]},
+  {id:"mountain", name:"Cairnridge High", tagline:"A mountain town wrapped in cold, thin air.", pool:["geokin","cryo","windwalk","stamina"]},
+  {id:"desert", name:"Solmere High", tagline:"A sun-scorched desert metro that never cools down.", pool:["solar","heat","sand","mirage"]},
+  {id:"forest", name:"Thornwood High", tagline:"A forest valley town, half-swallowed by green.", pool:["flora","beastspeak","regen","camo"]},
+  {id:"urban", name:"Ironvale High", tagline:"A dense, humming industrial sprawl.", pool:["techno","superstr","metal","construct"]}
+];
+
+function rollPower(locId, exclude){
+  exclude = exclude || [];
+  const loc = LOCATIONS.find(l=>l.id===locId);
+  const useUniversal = Math.random() < 0.2;
+  let pool = useUniversal ? Object.keys(POWERS).filter(k=>POWERS[k].loc==="universal") : loc.pool.slice();
+  pool = pool.filter(k=>!exclude.includes(k));
+  if(pool.length===0) pool = Object.keys(POWERS).filter(k=>!exclude.includes(k));
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+const FRESHMAN_POOL = [
+  { tag:"Locker Bully", npcName:"A Junior", grantsPower:false,
+    text:"First week. A junior corners a smaller freshman by the lockers, laughing while their books scatter across the floor.",
+    choices:[
+      {label:"Step in and stop it, in front of everyone.", align:{h:2,v:0,g:0}, result:"You plant yourself between them. The junior backs off, muttering. The freshman doesn't forget it."},
+      {label:"Wait until they're alone, then make the junior regret it privately.", align:{h:0,v:0,g:2}, result:"Later, in an empty hallway, you make sure the junior understands this doesn't happen twice. No one sees it. No one needs to."},
+      {label:"Film it for laughs and post it before lunch.", align:{h:0,v:2,g:0}, result:"The video gets three hundred views by second period. You feel something curdle in your stomach — and ignore it."}
+    ]},
+  { tag:"Gym Class Accident", npcName:"Coach Reyes", grantsPower:true,
+    text:"During a routine drill, your body does something it shouldn't. The floor cracks, or your water bottle spins on its own, or the lights flicker toward your hand. Something in you has woken up.",
+    choices:[
+      {label:"Panic, but immediately try to help the classmate nearest you.", align:{h:2,v:0,g:0}, result:"You mask the moment by 'catching' a falling teammate with strength you didn't have yesterday. Only you know what really happened."},
+      {label:"Let it show, just for a second, just to see their faces.", align:{h:0,v:2,g:0}, result:"A ripple of fear and awe moves through the gym. You like it more than you expect to."},
+      {label:"Shut it down instantly and tell no one.", align:{h:0,v:0,g:2}, result:"You bury the moment before the bell rings. Whatever this is, it's yours alone — for now."}
+    ]},
+  { tag:"Hallway Gossip", npcName:"Ms. Alden", grantsPower:false,
+    text:"You overhear two teachers in the hallway, voices low: a testing scandal, grades quietly altered for a coach's star player.",
+    choices:[
+      {label:"Report it to the principal's office that afternoon.", align:{h:2,v:0,g:0}, result:"It takes three weeks, but an investigation opens. You're not thanked. You didn't do it to be thanked."},
+      {label:"Approach the teacher directly and offer to keep quiet — for a price.", align:{h:0,v:2,g:0}, result:"The favor you're owed will come due eventually. You already know you'll collect."},
+      {label:"Dig quietly on your own until you have real proof, then leak it anonymously.", align:{h:0,v:0,g:2}, result:"Two weeks of careful, unseen work. When the story breaks, no one traces it back to you."}
+    ]},
+  { tag:"Group Project", npcName:"Deja", grantsPower:false,
+    text:"Your project partner is drowning — two jobs, a sick parent, a deadline tomorrow. The rest of the group wants to cut them loose.",
+    choices:[
+      {label:"Quietly redo their half of the work yourself overnight.", align:{h:2,v:0,g:0}, result:"You hand in a project no one else knows you carried. Your partner never finds out how close they came to failing."},
+      {label:"Let the group vote them off — it's not your problem.", align:{h:0,v:2,g:0}, result:"The grade is safe. Your partner isn't. You tell yourself it's just how the world works."},
+      {label:"Cut a deal: you'll cover for them if they owe you later.", align:{h:0,v:1,g:1}, result:"An IOU, freshman year. You're already thinking in favors and leverage."}
+    ]},
+  { tag:"Break-In Alert", npcName:"Your Phone", grantsPower:false,
+    text:"A news alert lights up half the phones in class: a break-in three blocks from school, still in progress.",
+    choices:[
+      {label:"Text the tip to police and stay in class.", align:{h:1,v:0,g:0}, result:"You did the responsible thing. It doesn't feel like enough."},
+      {label:"Sneak out and handle it yourself, quietly.", align:{h:0,v:0,g:2}, result:"You're back before the bell rings, pulse still hammering, no one the wiser."},
+      {label:"Go — not to stop it, but to see what you could take for yourself.", align:{h:0,v:2,g:0}, result:"You don't tell anyone what you walked away with. You like how easy it was."}
+    ]}
+];
+
+const SOPHOMORE_POOL = [
+  { tag:"Rigged Election", npcName:"Marcus", grantsPower:false,
+    text:"You find hard proof the student council election was rigged — ballots swapped by the winning candidate's friend.",
+    choices:[
+      {label:"Expose it publicly at the next assembly.", align:{h:2,v:0,g:0}, result:"The fallout is loud and messy. The right person loses their title. You make an enemy."},
+      {label:"Use it to install yourself as the 'fair' replacement candidate.", align:{h:0,v:2,g:0}, result:"You didn't need powers for this one — just leverage. It works perfectly."},
+      {label:"Confront them privately and force a quiet resignation.", align:{h:0,v:0,g:2}, result:"No assembly, no headlines. Just a resignation letter and a secret only two people know."}
+    ]},
+  { tag:"The Retired One", npcName:"Mr. Okafor", grantsPower:false,
+    text:"Your history teacher watches you a beat too long after your hand flares warm mid-lecture. After class: 'I used to do what you're starting to do. I can help — or pretend I never noticed.'",
+    choices:[
+      {label:"Ask them to train you to protect people, properly.", align:{h:2,v:0,g:0}, result:"Weekly sessions begin. They push you hard toward restraint and responsibility."},
+      {label:"Ask what they know about the money that used to come with powers like these.", align:{h:0,v:2,g:0}, result:"Their face changes. They teach you anyway — techniques with sharper edges than they intended."},
+      {label:"Say nothing. Learn what you can on your own.", align:{h:0,v:0,g:2}, result:"They respect the silence more than they'd admit. You're on your own, and that's how you like it."}
+    ]},
+  { tag:"Homecoming Rumor", npcName:"Priya", grantsPower:false,
+    text:"Someone's spreading a rumor designed to wreck a classmate's homecoming night — and you know exactly who started it.",
+    choices:[
+      {label:"Warn the classmate and help them get ahead of it.", align:{h:2,v:0,g:0}, result:"The night is saved. They never learn how close it came to ruin."},
+      {label:"Let it play out. Drama is drama.", align:{h:0,v:1,g:0}, result:"You watch from the sidelines. It's not your fight — you tell yourself that a lot lately."},
+      {label:"Quietly make sure the rumor-starter's night goes just as badly.", align:{h:0,v:1,g:1}, result:"Petty, effective, untraceable. You're getting good at this."}
+    ]},
+  { tag:"Family Trouble", npcName:"Mom", grantsPower:false,
+    text:"A scammer has been draining your family's savings for months, posing as a utility company. Your parents don't know yet — you found the voicemails on the kitchen counter.",
+    choices:[
+      {label:"Track down evidence and hand it to the real police.", align:{h:2,v:0,g:0}, result:"It takes weeks, but the scammer is arrested. Your family is safe, the legal way."},
+      {label:"Find the scammer yourself and make sure they never try this again.", align:{h:0,v:0,g:2}, result:"You visit them once. They move out of state within the month."},
+      {label:"Take the money back yourself — and then some.", align:{h:0,v:2,g:0}, result:"Your family's savings quietly reappear. So does a taste for solving problems this way."}
+    ]}
+];
+
+const JUNIOR_POOL = [
+  { tag:"Locker Room Leak", npcName:"Coach Reyes", grantsPower:false,
+    text:"Someone's been using your gym locker to stash something that isn't theirs — and isn't legal.",
+    choices:[
+      {label:"Turn it in to the school resource officer.", align:{h:2,v:0,g:0}, result:"You're briefly a suspect until the real story comes out. Doing right isn't always clean."},
+      {label:"Find out who it belongs to and deal with them directly, off school grounds.", align:{h:0,v:0,g:2}, result:"A quiet, one-on-one conversation ends the problem before it starts."},
+      {label:"Keep it. It might be useful.", align:{h:0,v:2,g:0}, result:"You tell yourself it's just insurance. It doesn't feel like insurance."}
+    ]},
+  { tag:"The Blackout", npcName:"A Passerby", grantsPower:false,
+    text:"A grid failure knocks out six blocks near the school, hospital included, backup generators failing one by one.",
+    choices:[
+      {label:"Rush to the hospital and use your powers openly to keep things running.", align:{h:2,v:0,g:0}, result:"You're seen. Really seen, for the first time. The city starts asking who you are."},
+      {label:"Fix it quietly from the shadows, then disappear before anyone can thank you.", align:{h:0,v:0,g:2}, result:"The lights come back on. No one knows how. You prefer it that way."},
+      {label:"Let the chaos run a little longer — it's useful cover for something else you need.", align:{h:0,v:2,g:0}, result:"You get what you came for. People got hurt in the dark you could have shortened."}
+    ]}
+];
+
+const SENIOR_POOL = [
+  { tag:"The Job Offer", npcName:"A Stranger", grantsPower:false,
+    text:"A slick, well-funded stranger finds you after school. 'I represent people who could use someone with your talents. Good pay. Better toys. Fewer rules.'",
+    choices:[
+      {label:"Turn them down flat and report the encounter to your mentor.", align:{h:2,v:0,g:0}, result:"They leave a card anyway. You burn it."},
+      {label:"Take the meeting. Just to see what 'fewer rules' actually means.", align:{h:0,v:2,g:0}, result:"It means exactly what you think. You're in deeper than you meant to be."},
+      {label:"String them along for information, no commitment.", align:{h:0,v:0,g:2}, result:"You walk away with names and a number no one else has. They don't know they've been used."}
+    ]},
+  { tag:"Missing Prom Funds", npcName:"Ms. Alden", grantsPower:false,
+    text:"Prom funds have gone missing from the committee's account, three days before the dance.",
+    choices:[
+      {label:"Cover the shortfall out of your own pocket, quietly.", align:{h:2,v:0,g:0}, result:"Prom happens. No one ever learns who saved it."},
+      {label:"Track the money down and make the thief return every cent — with interest.", align:{h:0,v:1,g:1}, result:"The money comes back. So does a reputation for not being someone to steal from."},
+      {label:"Skim a little off the recovered funds for yourself before handing back the rest.", align:{h:0,v:2,g:0}, result:"No one counts closely enough to notice. You do."}
+    ]}
+];
+
+const FRESHMAN_FIGHT = {
+  tag:"After-School Ambush", npcName:"Three Seniors", grantsPower:false, isFight:true,
+  text:"Three seniors corner you behind the gym, spoiling for a fight they think they'll win easily.",
+  choices:[
+    {label:"De-escalate. Talk your way clear without using your powers.", align:{h:1,v:0,g:1}, result:"It works — barely. You walk away without anyone learning what you can do."},
+    {label:"Use just enough power to scare them off, nothing more.", align:{h:2,v:0,g:0}, result:"A flash of what you can do is enough. They scatter. You made sure no one got hurt."},
+    {label:"Make an example of them.", align:{h:0,v:2,g:0}, result:"They run. The story that spreads by Monday is exaggerated — but not by much."}
+  ]
+};
+
+const SOPHOMORE_FIGHT = {
+  tag:"The Rematch", npcName:"Ironvale Transfer", grantsPower:false, isFight:true,
+  text:"The Ironvale transfer wants a real answer this time — a rematch, no witnesses, out past the parking lot fence.",
+  choices:[
+    {label:"Show up, but hold back and offer a truce instead.", align:{h:1,v:0,g:1}, result:"They're surprised enough to accept. An uneasy alliance is born."},
+    {label:"Go all in and prove you're the stronger one.", align:{h:0,v:2,g:0}, result:"You win. They don't forget it, and neither does the parking lot."},
+    {label:"Don't show up at all — let them wonder.", align:{h:0,v:0,g:2}, result:"Silence is its own kind of statement. It unsettles them more than a fight would have."}
+  ]
+};
+
+const JUNIOR_BOSS = {
+  name:"The Recruiter", npcName:"The Recruiter", grantsPower:true,
+  intro:"The stranger from the parking lot wasn't working alone. Tonight, out past the courtyard fence, their whole crew is waiting — and they want to see, definitively, what you're made of.",
+  rounds:[
+    { text:"Round 1 — They come in fast, testing your reflexes.",
+      choices:[
+        {label:"Meet force with precise, controlled force.", align:{h:2,v:0,g:0}, result:"You hold the line without losing your temper."},
+        {label:"Overwhelm them completely, no restraint.", align:{h:0,v:2,g:0}, result:"You hit harder than you needed to. It felt good anyway."},
+        {label:"Dodge and study their pattern instead of engaging.", align:{h:0,v:0,g:2}, result:"You learn their weakness before they learn yours."}
+      ]},
+    { text:"Round 2 — The Recruiter offers you an opening to walk away, if you 'join properly.'",
+      choices:[
+        {label:"Refuse and press the advantage to end this now.", align:{h:2,v:0,g:0}, result:"No deal. You push forward."},
+        {label:"Pretend to consider it, buying time to turn the tables.", align:{h:0,v:1,g:1}, result:"A convincing lie. They almost believe you."},
+        {label:"Actually consider it — the offer isn't nothing.", align:{h:0,v:2,g:0}, result:"Something in you leans toward yes. That scares you more than the fight does."}
+      ]},
+    { text:"Round 3 — The Recruiter is down, one shot from finished.",
+      choices:[
+        {label:"Stop. Make sure they're alive, then call it in.", align:{h:2,v:0,g:0}, result:"You choose restraint at the exact moment it's hardest."},
+        {label:"Finish it, no hesitation.", align:{h:0,v:2,g:0}, result:"You cross a line tonight you won't be able to un-cross."},
+        {label:"Leave them for their own crew to find. Not your problem anymore.", align:{h:0,v:0,g:2}, result:"You vanish before sirens arrive. No one saw you. No one ever does."}
+      ]}
+  ]
+};
+
+const FINAL_BOSS = {
+  name:"Graduation Night", npcName:"Graduation Night", grantsPower:false,
+  intro:"Prom night. The gym is full of streamers and bad music — and then the power grid across three city blocks drops at once. Somewhere in the dark, the people you crossed this year have come to collect.",
+  rounds:[
+    { text:"Round 1 — Panic spreads through the gym as the lights die.",
+      choices:[
+        {label:"Get your classmates out safely, first, before anything else.", align:{h:2,v:0,g:0}, result:"You clear the gym in under two minutes. Not one person hurt."},
+        {label:"Head straight for whoever's responsible.", align:{h:0,v:1,g:1}, result:"You leave the crowd behind. Some things matter more to you than a room full of strangers."},
+        {label:"Use the chaos as cover to handle this your way, unseen.", align:{h:0,v:0,g:2}, result:"No one will ever know you were even here tonight."}
+      ]},
+    { text:"Round 2 — You find them: the people you made enemies of this year, all in one place, waiting.",
+      choices:[
+        {label:"Try, one last time, to end this without anyone getting hurt.", align:{h:2,v:0,g:0}, result:"It's not what they want to hear. You say it anyway."},
+        {label:"Give them exactly what they came looking for.", align:{h:0,v:2,g:0}, result:"There's no pretending anymore about what you're willing to do."},
+        {label:"Fight smart — disable, don't destroy.", align:{h:0,v:0,g:2}, result:"Efficient. Controlled. Exactly your style by now."}
+      ]},
+    { text:"Round 3 — The final confrontation, everything on the line, everyone watching by now.",
+      choices:[
+        {label:"Save every person you can, whatever it costs you personally.", align:{h:3,v:0,g:0}, result:"By dawn, the story is already spreading: someone saved this town tonight."},
+        {label:"Make sure your name is the one people fear from now on.", align:{h:0,v:3,g:0}, result:"By dawn, the story is already spreading — and it isn't a kind one."},
+        {label:"Do what needs doing, then disappear before the sun comes up.", align:{h:0,v:0,g:3}, result:"By dawn, no one can even agree on what they saw, or who did it."}
+      ]}
+  ]
+};
+
+/* ============================================================
+   ROOM MAP — a real hallway with real doors, plus a home scene
+   ============================================================ */
+
+const HALLWAY_DOOR_X = { classroom:250, gym:550, library:850, cafeteria:1150, courtyard:1450, home:60 };
+
+const ROOMS = {
+  hallway:{ name:"Main Hallway", width:1700, kind:"hallway",
+    doors:[
+      {label:"Front Doors (Go Home)", x:60, leadsTo:"home"},
+      {label:"Classroom 204", x:250, leadsTo:"classroom"},
+      {label:"Gymnasium", x:550, leadsTo:"gym"},
+      {label:"Library", x:850, leadsTo:"library"},
+      {label:"Cafeteria", x:1150, leadsTo:"cafeteria"},
+      {label:"Side Exit (Courtyard)", x:1450, leadsTo:"courtyard"}
+    ]},
+  classroom:{ name:"Classroom 204", width:900, kind:"classroom", doors:[{label:"Hallway", x:60, leadsTo:"hallway"}] },
+  gym:{ name:"Gymnasium", width:900, kind:"gym", doors:[{label:"Hallway", x:60, leadsTo:"hallway"}] },
+  library:{ name:"Library", width:900, kind:"library", doors:[{label:"Hallway", x:60, leadsTo:"hallway"}] },
+  cafeteria:{ name:"Cafeteria", width:900, kind:"cafeteria", doors:[{label:"Hallway", x:60, leadsTo:"hallway"}] },
+  courtyard:{ name:"Courtyard & Parking Lot", width:900, kind:"courtyard", doors:[{label:"Hallway", x:60, leadsTo:"hallway"}] },
+  home:{ name:"Home", width:900, kind:"home", doors:[{label:"Head Back to School", x:60, leadsTo:"hallway"}] }
+};
+
+const AMBIENT_NPCS = {
+  hallway:[
+    {name:"Devon", x:420, bark:"Locker 118's been stuck all week. Don't even ask."},
+    {name:"Kayla", x:1280, bark:"Did you finish the reading? ...Yeah, me neither."}
+  ],
+  classroom:[ {name:"Ms. Alden", x:420, bark:"Take your seat, we're starting in two minutes."} ],
+  gym:[ {name:"Coach Reyes", x:460, bark:"Suit up. Drill starts in five, no exceptions."} ],
+  library:[ {name:"Priya", x:480, bark:"Shh. Also — have you seen the new locker assignments?"} ],
+  cafeteria:[ {name:"Marcus", x:460, bark:"You hear about the election recount? Wild."} ],
+  courtyard:[ {name:"A Freshman", x:440, bark:"Is it true seniors get their own parking spots?"} ],
+  home:[ {name:"Dad", x:520, bark:"Dinner's at six. Wash up first."} ]
+};
+
+function buildSteps(pool, room, fightOrBoss){
+  const steps = pool.map(e=>({room, event:e}));
+  if(fightOrBoss) steps.push(fightOrBoss);
+  return steps;
+}
+
+const CHAPTERS = [
+  { name:"Freshman Year", intro:"First year. New building, new faces, and a body that's starting to do things it shouldn't.",
+    steps:[
+      {room:"hallway", event:FRESHMAN_POOL[0]},
+      {room:"gym", event:FRESHMAN_POOL[1]},
+      {room:"hallway", event:FRESHMAN_POOL[2]},
+      {room:"library", event:FRESHMAN_POOL[3]},
+      {room:"classroom", event:FRESHMAN_POOL[4]},
+      {room:"courtyard", event:FRESHMAN_FIGHT, isFight:true}
+    ]},
+  { name:"Sophomore Year", intro:"A year in, and the choices are starting to add up to something.",
+    steps:[
+      {room:"gym", event:SOPHOMORE_POOL[0]},
+      {room:"classroom", event:SOPHOMORE_POOL[1]},
+      {room:"cafeteria", event:SOPHOMORE_POOL[2]},
+      {room:"home", event:SOPHOMORE_POOL[3]},
+      {room:"courtyard", event:SOPHOMORE_FIGHT, isFight:true}
+    ]},
+  { name:"Junior Year", intro:"People are starting to notice. Some of them want something from you.",
+    steps:[
+      {room:"gym", event:JUNIOR_POOL[0]},
+      {room:"courtyard", event:JUNIOR_POOL[1]},
+      {room:"courtyard", event:JUNIOR_BOSS, isBoss:true}
+    ]},
+  { name:"Senior Year", intro:"Last year. Whatever you've become by now, it's about to become official.",
+    steps:[
+      {room:"courtyard", event:SENIOR_POOL[0]},
+      {room:"library", event:SENIOR_POOL[1]},
+      {room:"gym", event:FINAL_BOSS, isBoss:true}
+    ]}
+];
+
+/* ============================================================
+   GAME STATE
+   ============================================================ */
+
+let S = null;
+function newState(){
+  return { name:"", gender:"", locationId:"", hero:1, villain:1, vigilante:1, powers:[], log:[],
+    appearance: defaultAppearance(), chapterIndex:0, stepIndex:0, day:1, room:"hallway", playerX:800,
+    doneAmbient:{} };
+}
+function applyAlign(a){ S.hero+=a.h||0; S.villain+=a.v||0; S.vigilante+=a.g||0; }
+function pcts(){
+  const total = S.hero+S.villain+S.vigilante;
+  return { hero:Math.round(S.hero/total*100), villain:Math.round(S.villain/total*100), vigilante:Math.round(S.vigilante/total*100) };
+}
+function meterBarHTML(){
+  const p = pcts();
+  return `<div class="meter-bar">
+    <div class="meter hero"><div class="pct">${p.hero}%</div><div class="name">Hero</div><div class="meter-track"><div class="meter-fill" style="width:${p.hero}%"></div></div></div>
+    <div class="meter villain"><div class="pct">${p.villain}%</div><div class="name">Villain</div><div class="meter-track"><div class="meter-fill" style="width:${p.villain}%"></div></div></div>
+    <div class="meter vigilante"><div class="pct">${p.vigilante}%</div><div class="name">Vigilante</div><div class="meter-track"><div class="meter-fill" style="width:${p.vigilante}%"></div></div></div>
+  </div>`;
+}
+function currentChapter(){ return CHAPTERS[S.chapterIndex]; }
+function currentStep(){ const ch = currentChapter(); return ch.steps[S.stepIndex] || null; }
+
+/* ============================================================
+   2D HUMAN CHARACTER DRAWING
+   ============================================================ */
+
+function drawHuman(ctx, cx, groundY, scale, app, opts){
+  opts = opts || {};
+  const facing = opts.facing || 1;
+  const walkPhase = opts.walkPhase || 0;
+  const walking = !!opts.walking;
+  const talkPhase = opts.talkPhase || 0;
+  const talking = !!opts.talking;
+  const gesture = opts.gesture || "idle";
+  const idlePhase = opts.idlePhase || 0;
+
+  ctx.save();
+  ctx.translate(cx, groundY);
+  if(facing<0) ctx.scale(-1,1);
+
+  const bob = walking ? Math.sin(walkPhase*2)*2*scale : Math.sin(idlePhase)*1.2*scale;
+  ctx.translate(0, bob);
+
+  const legLen = 46*scale, torsoH = 46*scale, torsoW = 30*scale, headR = 15*scale, armLen = 40*scale;
+  const hipY = -legLen, torsoTopY = hipY - torsoH, shoulderY = torsoTopY + 6*scale, headCY = torsoTopY - headR - 3*scale;
+
+  // shadow
+  ctx.fillStyle = "rgba(0,0,0,0.28)";
+  ctx.beginPath(); ctx.ellipse(0, 3*scale, 20*scale, 5*scale, 0, 0, Math.PI*2); ctx.fill();
+
+  // legs
+  const legSwing = walking ? Math.sin(walkPhase)*0.5 : 0;
+  drawLimb(ctx, -8*scale, hipY, legLen, 9*scale, legSwing, "#2a2a34");
+  drawLimb(ctx, 8*scale, hipY, legLen, 9*scale, -legSwing, "#2a2a34");
+
+  // torso
+  ctx.fillStyle = app.outfitPrimary;
+  roundRect(ctx, -torsoW/2, torsoTopY, torsoW, torsoH, 8*scale);
+  ctx.fill();
+  ctx.fillStyle = app.outfitAccent;
+  roundRect(ctx, -torsoW/2+4*scale, torsoTopY+8*scale, torsoW-8*scale, 8*scale, 3*scale);
+  ctx.fill();
+
+  // arms
+  let armSwingL = walking ? -Math.sin(walkPhase)*0.5 : 0;
+  let armSwingR = walking ? Math.sin(walkPhase)*0.5 : 0;
+  if(gesture==="heroic"){ armSwingL = -2.4; armSwingR = -0.3; }
+  else if(gesture==="villainous"){ armSwingL = 0.9; armSwingR = -0.9; }
+  else if(gesture==="stealthy"){ armSwingL = 0.5; armSwingR = 0.6; }
+  else if(gesture==="talk"){ armSwingR = -0.6 + Math.sin(idlePhase*1.5)*0.15; }
+  drawLimb(ctx, -14*scale, shoulderY, armLen, 8*scale, armSwingL, app.outfitPrimary);
+  drawLimb(ctx, 14*scale, shoulderY, armLen, 8*scale, armSwingR, app.outfitPrimary);
+
+  // neck
+  ctx.fillStyle = app.skin;
+  ctx.fillRect(-5*scale, torsoTopY-6*scale, 10*scale, 8*scale);
+
+  // head
+  ctx.beginPath(); ctx.arc(0, headCY, headR, 0, Math.PI*2); ctx.fillStyle = app.skin; ctx.fill();
+
+  // face
+  ctx.fillStyle = "#1c1c26";
+  ctx.beginPath(); ctx.arc(5*scale, headCY-2*scale, 1.6*scale, 0, Math.PI*2); ctx.fill();
+  const mouthH = talking ? (Math.abs(Math.sin(talkPhase*9))*3.5*scale+1*scale) : 1.4*scale;
+  ctx.fillStyle = "#7a3b3b";
+  roundRect(ctx, 3*scale, headCY+6*scale, 7*scale, mouthH, 2*scale); ctx.fill();
+
+  // hair
+  ctx.fillStyle = app.hairColor;
+  if(app.hairStyle==="short"){
+    ctx.beginPath(); ctx.arc(0, headCY-2*scale, headR+1.5*scale, Math.PI*0.95, Math.PI*2.05); ctx.fill();
+  } else if(app.hairStyle==="long"){
+    ctx.beginPath(); ctx.arc(0, headCY-2*scale, headR+1.5*scale, Math.PI*0.95, Math.PI*2.05); ctx.fill();
+    roundRect(ctx, -headR-1*scale, headCY-2*scale, 6*scale, 30*scale, 4*scale); ctx.fill();
+    roundRect(ctx, headR-5*scale, headCY-2*scale, 6*scale, 30*scale, 4*scale); ctx.fill();
+  } else if(app.hairStyle==="mohawk"){
+    ctx.beginPath();
+    ctx.moveTo(-3*scale, headCY-headR);
+    ctx.lineTo(3*scale, headCY-headR);
+    ctx.lineTo(2*scale, headCY-headR-10*scale);
+    ctx.lineTo(-2*scale, headCY-headR-10*scale);
+    ctx.closePath(); ctx.fill();
+  }
+
+  ctx.restore();
+}
+function drawLimb(ctx, x, y, len, w, angle, color){
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle*0.5);
+  ctx.fillStyle = color;
+  roundRect(ctx, -w/2, 0, w, len, w/2);
+  ctx.fill();
+  ctx.restore();
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+function poseForChoice(c){
+  const a = c.align||{};
+  const h=a.h||0, v=a.v||0, g=a.g||0;
+  if(v>=h && v>=g && v>0) return "villainous";
+  if(g>=h && g>=v && g>0) return "stealthy";
+  return "heroic";
+}
+
+/* ============================================================
+   APP SHELL / SCREENS
+   ============================================================ */
+const app = document.getElementById("app");
+
+function renderTitleScreen(){
+  app.innerHTML = `
+    <div class="panel" style="text-align:center;">
+      <h1 class="title">ORIGIN</h1>
+      <h2 class="subtitle" style="font-size:18px;">THE CHOICE IS YOURS</h2>
+      <p>Walk the halls of your own high school. Make the calls, big and small. Graduate as whoever those choices made you — hero, villain, or something in between. Play it again and it's a different life entirely.</p>
+      <button class="primary" id="startBtn">Enroll</button>
+    </div>`;
+  document.getElementById("startBtn").onclick = ()=>{ S = newState(); renderCreator(); };
+}
+
+let creatorCanvas, creatorCtx, creatorTimer;
+function renderCreator(){
+  app.innerHTML = `
+    <div class="panel">
+      <div class="chapter-tag">New Student</div>
+      <h2 class="subtitle">Build Your Character</h2>
+      <div class="creator-wrap">
+        <div class="creator-preview">
+          <canvas id="prevCanvas" width="240" height="320"></canvas>
+          <div class="preview-hint">Your avatar in-game</div>
+        </div>
+        <div class="creator-controls">
+          <fieldset>
+            <legend>Name</legend>
+            <input type="text" id="nameInput" placeholder="Enter your name" maxlength="18" value="${S.name}">
+          </fieldset>
+          <fieldset>
+            <legend>Gender</legend>
+            <div class="pill-row" id="genderRow">
+              <div class="pill ${S.gender==='Male'?'active':''}" data-g="Male">Male</div>
+              <div class="pill ${S.gender==='Female'?'active':''}" data-g="Female">Female</div>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Skin Tone</legend>
+            <div class="swatch-row" id="skinRow"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Hair Color</legend>
+            <div class="swatch-row" id="hairColorRow"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Hair Style</legend>
+            <div class="pill-row" id="hairStyleRow"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Outfit Color</legend>
+            <div class="swatch-row" id="outfitRow"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Accent Color</legend>
+            <div class="swatch-row" id="accentRow"></div>
+          </fieldset>
+        </div>
+      </div>
+      <h2 class="subtitle" style="font-size:18px;">Choose Your Town</h2>
+      <p style="margin-top:-6px; font-size:13px; color:#5a5a68;">Where you grow up shapes what kind of powers you're likely to awaken.</p>
+      <div class="loc-grid" id="locGrid"></div>
+      <button class="primary" id="beginBtn" disabled>Begin Freshman Year</button>
+    </div>`;
+
+  document.getElementById("nameInput").oninput = e=>{ S.name = e.target.value.trim(); validateCreator(); };
+  document.getElementById("genderRow").querySelectorAll(".pill").forEach(p=>{
+    p.onclick = ()=>{ S.gender = p.dataset.g; document.getElementById("genderRow").querySelectorAll(".pill").forEach(x=>x.classList.remove("active")); p.classList.add("active"); validateCreator(); };
+  });
+  buildSwatchRow("skinRow", SKIN_TONES, S.appearance.skin, v=>{ S.appearance.skin=v; drawCreatorPreview(); });
+  buildSwatchRow("hairColorRow", HAIR_COLORS, S.appearance.hairColor, v=>{ S.appearance.hairColor=v; drawCreatorPreview(); });
+  buildPillRow("hairStyleRow", HAIR_STYLES, S.appearance.hairStyle, v=>{ S.appearance.hairStyle=v; drawCreatorPreview(); });
+  buildSwatchRow("outfitRow", OUTFIT_COLORS, S.appearance.outfitPrimary, v=>{ S.appearance.outfitPrimary=v; drawCreatorPreview(); });
+  buildSwatchRow("accentRow", ACCENT_COLORS, S.appearance.outfitAccent, v=>{ S.appearance.outfitAccent=v; drawCreatorPreview(); });
+
+  const locGrid = document.getElementById("locGrid");
+  locGrid.innerHTML = LOCATIONS.map(l=>`<div class="loc-card ${S.locationId===l.id?'active':''}" data-l="${l.id}"><div class="lname">${l.name}</div><div class="ldesc">${l.tagline}</div></div>`).join("");
+  locGrid.querySelectorAll(".loc-card").forEach(c=>{
+    c.onclick = ()=>{ S.locationId = c.dataset.l; locGrid.querySelectorAll(".loc-card").forEach(x=>x.classList.remove("active")); c.classList.add("active"); validateCreator(); };
+  });
+
+  document.getElementById("beginBtn").onclick = ()=>{
+    clearInterval(creatorTimer);
+    S.room="hallway"; S.playerX=800;
+    renderChapterIntro();
+  };
+
+  creatorCanvas = document.getElementById("prevCanvas");
+  creatorCtx = creatorCanvas.getContext("2d");
+  drawCreatorPreview();
+  clearInterval(creatorTimer);
+  creatorTimer = setInterval(drawCreatorPreview, 90);
+  validateCreator();
+}
+function buildSwatchRow(id, colors, active, onPick){
+  const row = document.getElementById(id);
+  row.innerHTML = colors.map(c=>`<div class="swatch ${c===active?'active':''}" style="background:${c}" data-c="${c}"></div>`).join("");
+  row.querySelectorAll(".swatch").forEach(sw=>{
+    sw.onclick = ()=>{ onPick(sw.dataset.c); row.querySelectorAll(".swatch").forEach(x=>x.classList.remove("active")); sw.classList.add("active"); };
+  });
+}
+function buildPillRow(id, values, active, onPick){
+  const row = document.getElementById(id);
+  row.innerHTML = values.map(v=>`<div class="pill ${v===active?'active':''}" data-v="${v}">${v[0].toUpperCase()+v.slice(1)}</div>`).join("");
+  row.querySelectorAll(".pill").forEach(p=>{
+    p.onclick = ()=>{ onPick(p.dataset.v); row.querySelectorAll(".pill").forEach(x=>x.classList.remove("active")); p.classList.add("active"); };
+  });
+}
+function validateCreator(){
+  const btn = document.getElementById("beginBtn");
+  if(!btn) return;
+  btn.disabled = !(S.name && S.gender && S.locationId);
+}
+let creatorIdle = 0;
+function drawCreatorPreview(){
+  if(!creatorCtx) return;
+  creatorIdle += 0.09;
+  const c = creatorCtx, w = creatorCanvas.width, h = creatorCanvas.height;
+  const grad = c.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,"#3a4a68"); grad.addColorStop(1,"#22283a");
+  c.fillStyle = grad; c.fillRect(0,0,w,h);
+  drawHuman(c, w/2, h*0.82, 3.4, S.appearance, {facing:1, idlePhase:creatorIdle, gesture:"idle"});
+}
+
+function renderChapterIntro(){
+  const ch = currentChapter();
+  app.innerHTML = `
+    ${meterBarHTML()}
+    <div class="panel">
+      <div class="chapter-tag">${ch.name}</div>
+      <h2 class="subtitle">${ch.name}</h2>
+      <p>${ch.intro}</p>
+      <p class="flavor">${objectiveText()}</p>
+      <button class="primary" id="goBtn">Start Exploring</button>
+    </div>`;
+  document.getElementById("goBtn").onclick = renderGameScreen;
+}
+
+function objectiveText(){
+  const step = currentStep();
+  if(!step) return "Head to the front doors — the day is done.";
+  const room = ROOMS[step.room];
+  const name = step.event.npcName || step.event.name || step.event.tag;
+  if(step.room==="home") return `Something's waiting for you at home tonight.`;
+  return `Find ${name} — try the ${room.name}.`;
+}
+
+/* ============================================================
+   GAME SCREEN — walkable hallway + rooms
+   ============================================================ */
+
+let gcanvas, gctx, keys={}, gRaf=null, camX=0, dpr=1;
+let player = { walkPhase:0, idlePhase:0, facing:1, moving:false };
+let ambientBarkTimer = null, activeBark = null, barkFade = 0;
+
+function renderGameScreen(){
+  app.innerHTML = `
+    ${meterBarHTML()}
+    <div id="gameWrap">
+      <div id="hud2">
+        <div id="chapterLabel">${currentChapter().name}</div>
+        <div id="objective">${objectiveText()}</div>
+      </div>
+      <div id="canvasFrame">
+        <canvas id="roomCanvas"></canvas>
+        <div id="roomLabel"></div>
+        <div id="dayLabel">Day ${S.day}</div>
+        <div id="cutOverlay" class="hidden"></div>
+      </div>
+      <div id="promptRow"><button id="promptBtn" class="hidden"></button></div>
+      <div id="moveRow">
+        <button class="movebtn" id="btnLeft">&#9664;</button>
+        <div class="hint">arrows / WASD to move &middot; space or the button above to interact</div>
+        <button class="movebtn" id="btnRight">&#9654;</button>
+      </div>
+    </div>`;
+
+  gcanvas = document.getElementById("roomCanvas");
+  gctx = gcanvas.getContext("2d");
+  dpr = Math.min(window.devicePixelRatio||1, 2);
+  gcanvas.width = 900*dpr; gcanvas.height = 520*dpr;
+  gctx.setTransform(dpr,0,0,dpr,0,0);
+
+  window.onkeydown = e=>{ keys[e.key.toLowerCase()]=true; if(e.key===" "){ e.preventDefault(); handleInteractPress(); } };
+  window.onkeyup = e=>{ keys[e.key.toLowerCase()]=false; };
+  bindHold("btnLeft","arrowleft"); bindHold("btnRight","arrowright");
+  document.getElementById("promptBtn").onclick = handleInteractPress;
+
+  updateRoomLabel();
+  if(gRaf) cancelAnimationFrame(gRaf);
+  let last = performance.now();
+  function loop(ts){
+    const dt = Math.min(0.05,(ts-last)/1000); last = ts;
+    if(!cutsceneOpen()) updateWorld(dt);
+    drawWorld();
+    gRaf = requestAnimationFrame(loop);
+  }
+  gRaf = requestAnimationFrame(loop);
+}
+function bindHold(id,key){
+  const el = document.getElementById(id);
+  const down = e=>{ e.preventDefault(); keys[key]=true; };
+  const up = e=>{ keys[key]=false; };
+  el.addEventListener("pointerdown", down); el.addEventListener("pointerup", up); el.addEventListener("pointerleave", up);
+}
+function stopGameLoop(){ if(gRaf) cancelAnimationFrame(gRaf); gRaf=null; window.onkeydown=null; window.onkeyup=null; }
+
+function cutsceneOpen(){
+  const ov = document.getElementById("cutOverlay");
+  return ov && !ov.classList.contains("hidden");
+}
+
+function room(){ return ROOMS[S.room]; }
+
+function updateRoomLabel(){
+  const lbl = document.getElementById("roomLabel");
+  if(lbl) lbl.textContent = room().name;
+  const dl = document.getElementById("dayLabel");
+  if(dl) dl.textContent = "Day "+S.day;
+  const obj = document.getElementById("objective");
+  if(obj) obj.textContent = objectiveText();
+}
+
+function updateWorld(dt){
+  let dx = 0;
+  if(keys["arrowleft"]||keys["a"]) dx -= 1;
+  if(keys["arrowright"]||keys["d"]) dx += 1;
+  player.moving = dx!==0;
+  if(dx!==0) player.facing = dx;
+  const SPEED = 220;
+  if(dx!==0){
+    S.playerX = Math.max(20, Math.min(room().width-20, S.playerX + dx*SPEED*dt));
+    player.walkPhase += dt*9;
+  }
+  player.idlePhase += dt*1.6;
+
+  if(room().kind==="hallway"){
+    camX = Math.max(0, Math.min(room().width-900, S.playerX-450));
+  } else camX = 0;
+
+  updatePrompt();
+}
+
+function nearestInteractable(){
+  const r = room();
+  let best = null, bestD = 46;
+  r.doors.forEach(d=>{
+    const dist = Math.abs(S.playerX-d.x);
+    if(dist<bestD){ bestD=dist; best={type:"door", data:d}; }
+  });
+  const step = currentStep();
+  if(step && step.room===S.room){
+    const fx = flaggedX();
+    const dist = Math.abs(S.playerX-fx);
+    if(dist<50 && dist<bestD){ bestD=dist; best={type:"event", data:step}; }
+  }
+  (AMBIENT_NPCS[S.room]||[]).forEach(n=>{
+    const dist = Math.abs(S.playerX-n.x);
+    if(dist<50 && dist<bestD){ bestD=dist; best={type:"ambient", data:n}; }
+  });
+  return best;
+}
+function flaggedX(){
+  if(S.room==="hallway") return 480;
+  return 460;
+}
+function updatePrompt(){
+  const btn = document.getElementById("promptBtn");
+  if(!btn) return;
+  const t = nearestInteractable();
+  if(!t){ btn.classList.add("hidden"); return; }
+  btn.classList.remove("hidden");
+  if(t.type==="door") btn.textContent = (t.data.leadsTo==="home"?"Leave School — ":"Enter ")+t.data.label.replace("Front Doors (Go Home)","Home").replace("Head Back to School","School");
+  else if(t.type==="event"){ const e = t.data.event; btn.textContent = "Talk to "+(e.npcName||e.name||e.tag); }
+  else btn.textContent = "Talk to "+t.data.name;
+}
+function handleInteractPress(){
+  if(cutsceneOpen()) return;
+  const t = nearestInteractable();
+  if(!t) return;
+  if(t.type==="door") enterRoom(t.data.leadsTo);
+  else if(t.type==="event") beginStepEvent(t.data);
+  else if(t.type==="ambient") showBark(t.data);
+}
+function enterRoom(roomId){
+  if(roomId==="hallway"){
+    S.playerX = HALLWAY_DOOR_X[S.room] || 800;
+    if(S.room==="home") S.day++;
+  } else {
+    S.playerX = 140;
+  }
+  S.room = roomId;
+  updateRoomLabel();
+}
+function showBark(npc){
+  activeBark = { name:npc.name, text:npc.bark };
+  barkFade = 3.2;
+}
+
+/* ---------- drawing the world ---------- */
+function drawWorld(){
+  const ctx = gctx, kind = room().kind;
+  ctx.clearRect(0,0,900,520);
+  drawRoomBackground(ctx, kind);
+  drawDoors(ctx);
+  drawAmbientNpcs(ctx);
+  drawFlaggedNpc(ctx);
+  drawPlayer(ctx);
+  drawBarkBubble(ctx);
+}
+function toScreen(x){ return x - camX; }
+
+function drawRoomBackground(ctx, kind){
+  ctx.fillStyle = "#d8cfb4"; ctx.fillRect(0,0,900,520);
+  // floor
+  ctx.fillStyle = kind==="gym"?"#c98a4b":kind==="courtyard"?"#8fae6e":"#e3d9bd";
+  ctx.fillRect(0,360,900,160);
+  ctx.strokeStyle = "rgba(0,0,0,0.08)"; ctx.lineWidth=2;
+  for(let x=-camX%80; x<900; x+=80){ ctx.beginPath(); ctx.moveTo(x,360); ctx.lineTo(x,520); ctx.stroke(); }
+  // wall band
+  ctx.fillStyle = kind==="courtyard" ? "#6ea0c9" : "#b7a980";
+  ctx.fillRect(0,0,900,360);
+  ctx.fillStyle = "rgba(0,0,0,0.06)";
+  ctx.fillRect(0,340,900,20);
+
+  const width = room().width;
+  if(kind==="hallway"){
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
+    for(let x=-camX; x<width-camX; x+=180){ roundRect(ctx,x+40,120,90,220,4); ctx.fill(); } // lockers
+    ctx.fillStyle = "#8f8365";
+    for(let x=-camX; x<width-camX; x+=180){ ctx.fillRect(x+40,120,90,220); }
+    for(let x=-camX; x<width-camX; x+=180){ for(let i=1;i<5;i++){ ctx.strokeStyle="rgba(0,0,0,0.15)"; ctx.beginPath(); ctx.moveTo(x+40+i*18,120); ctx.lineTo(x+40+i*18,340); ctx.stroke(); } }
+    ctx.fillStyle = "#f2ede1"; ctx.font="bold 13px Oswald, sans-serif"; ctx.textAlign="center";
+    ctx.fillText("MAIN HALL", 450, 60);
+  } else if(kind==="classroom"){
+    ctx.fillStyle = "#5a4636";
+    for(let r2=0;r2<3;r2++) for(let c2=0;c2<4;c2++){ const dx=260+c2*130, dy=200+r2*55; ctx.fillRect(dx,dy,60,26); ctx.fillRect(dx+22,dy+26,16,20); }
+    ctx.fillStyle = "#3c4a3c"; ctx.fillRect(80,60,240,150);
+    ctx.strokeStyle="#f2ede1"; ctx.lineWidth=2; ctx.strokeRect(80,60,240,150);
+  } else if(kind==="gym"){
+    ctx.strokeStyle="rgba(255,255,255,0.6)"; ctx.lineWidth=3;
+    ctx.strokeRect(60,380,780,90);
+    ctx.beginPath(); ctx.moveTo(450,380); ctx.lineTo(450,470); ctx.stroke();
+    ctx.beginPath(); ctx.arc(450,425,40,0,Math.PI*2); ctx.stroke();
+    ctx.strokeStyle="#5a4636"; ctx.lineWidth=6;
+    ctx.beginPath(); ctx.moveTo(110,120); ctx.lineTo(110,190); ctx.stroke();
+    ctx.strokeStyle="#c1272d"; ctx.beginPath(); ctx.arc(110,195,22,Math.PI,Math.PI*2); ctx.stroke();
+    if(S.promMode){
+      const t = performance.now()/500;
+      for(let i=0;i<10;i++){ ctx.fillStyle=["#f5c542","#c1272d","#2f5fb3","#7b5ea7"][i%4]; ctx.fillRect(70+i*82, 40+Math.sin(t+i)*8, 6, 40); }
+      ctx.fillStyle="#f2ede1"; ctx.font="bold 20px Bangers, cursive"; ctx.textAlign="center"; ctx.fillText("GRADUATION NIGHT", 450, 90);
+    } else {
+      ctx.fillStyle="#f2ede1"; ctx.font="bold 13px Oswald, sans-serif"; ctx.textAlign="center"; ctx.fillText("GYMNASIUM", 450, 60);
+    }
+  } else if(kind==="library"){
+    ctx.fillStyle = "#5a4636";
+    for(let i=0;i<5;i++){ ctx.fillRect(90+i*150,90,120,220); }
+    ctx.fillStyle="#c9b98a";
+    for(let i=0;i<5;i++) for(let s2=0;s2<6;s2++){ ctx.fillRect(96+i*150, 96+s2*34, 108, 26); }
+    ctx.fillStyle="#f2ede1"; ctx.font="bold 13px Oswald, sans-serif"; ctx.textAlign="center"; ctx.fillText("LIBRARY", 450, 60);
+  } else if(kind==="cafeteria"){
+    ctx.fillStyle = "#8f8365";
+    for(let i=0;i<4;i++){ roundRect(ctx,150+i*160,220,110,110,8); ctx.fill(); }
+    ctx.fillStyle="#f2ede1"; ctx.font="bold 13px Oswald, sans-serif"; ctx.textAlign="center"; ctx.fillText("CAFETERIA", 450, 60);
+  } else if(kind==="courtyard"){
+    ctx.fillStyle="#6b8f52"; ctx.beginPath(); ctx.arc(200,300,50,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle="#7a5a3a"; ctx.fillRect(196,300,8,60);
+    ctx.fillStyle="#3a3a44";
+    for(let i=0;i<5;i++) ctx.fillRect(560+i*70,250,50,110);
+    ctx.fillStyle="#f2ede1"; ctx.font="bold 13px Oswald, sans-serif"; ctx.textAlign="center"; ctx.fillText("COURTYARD / LOT", 450, 60);
+  } else if(kind==="home"){
+    ctx.fillStyle = "#6b5642"; ctx.fillRect(500,120,260,180);
+    ctx.fillStyle = "#3f3a52"; ctx.fillRect(560,150,60,60);
+    ctx.fillStyle = "#8f8365"; roundRect(ctx,120,230,180,90,10); ctx.fill();
+    ctx.fillStyle="#f2ede1"; ctx.font="bold 13px Oswald, sans-serif"; ctx.textAlign="center"; ctx.fillText("HOME", 450, 60);
+  }
+}
+
+function drawDoors(ctx){
+  room().doors.forEach(d=>{
+    const sx = toScreen(d.x);
+    if(sx<-60||sx>960) return;
+    ctx.fillStyle = "#2a2015";
+    roundRect(ctx, sx-24, 210, 48, 150, 4); ctx.fill();
+    ctx.fillStyle = "#c99a3e";
+    ctx.beginPath(); ctx.arc(sx+16,285,3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#0b0b12";
+    ctx.font = "600 11px Oswald, sans-serif"; ctx.textAlign="center";
+    ctx.fillText(d.label, sx, 200);
+  });
+}
+function drawAmbientNpcs(ctx){
+  (AMBIENT_NPCS[S.room]||[]).forEach(n=>{
+    const sx = toScreen(n.x);
+    if(sx<-40||sx>940) return;
+    drawHuman(ctx, sx, 410, 2.6, npcAppearance(n.name), {facing:-1, idlePhase:performance.now()/700, gesture:"idle"});
+    ctx.fillStyle="rgba(11,11,18,0.7)"; ctx.font="600 10px Oswald, sans-serif"; ctx.textAlign="center";
+    ctx.fillText(n.name, sx, 250);
+  });
+}
+function drawFlaggedNpc(ctx){
+  const step = currentStep();
+  if(!step || step.room!==S.room) return;
+  const x = flaggedX(); const sx = toScreen(x);
+  const e = step.event;
+  drawHuman(ctx, sx, 410, 2.8, npcAppearance(e.npcName||e.name||e.tag), {facing:-1, idlePhase:performance.now()/700, gesture:"idle"});
+  ctx.fillStyle="rgba(11,11,18,0.7)"; ctx.font="600 10px Oswald, sans-serif"; ctx.textAlign="center";
+  ctx.fillText(e.npcName||e.name||e.tag, sx, 250);
+  const bob = Math.sin(performance.now()/260)*4;
+  ctx.fillStyle="#f5c542"; ctx.font="bold 24px Bangers, cursive"; ctx.textAlign="center";
+  ctx.fillText("!", sx, 220+bob);
+}
+function drawPlayer(ctx){
+  const sx = toScreen(S.playerX);
+  drawHuman(ctx, sx, 410, 3, S.appearance, {facing:player.facing, walking:player.moving, walkPhase:player.walkPhase, idlePhase:player.idlePhase, gesture:"idle"});
+}
+function drawBarkBubble(ctx){
+  if(!activeBark || barkFade<=0) return;
+  barkFade -= 0.016;
+  ctx.globalAlpha = Math.min(1, barkFade);
+  ctx.fillStyle = "rgba(11,11,18,0.82)";
+  roundRect(ctx, 260, 300, 380, 46, 10); ctx.fill();
+  ctx.fillStyle = "#f2ede1"; ctx.font="600 12px Work Sans, sans-serif"; ctx.textAlign="center";
+  ctx.fillText(`${activeBark.name}: "${activeBark.text}"`, 450, 328);
+  ctx.globalAlpha = 1;
+}
+
+// stable per-name NPC look, cached
+const NPC_LOOKS = {};
+function npcAppearance(name){
+  if(!NPC_LOOKS[name]){
+    let h=0; for(let i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) >>> 0;
+    NPC_LOOKS[name] = {
+      skin: SKIN_TONES[h%SKIN_TONES.length],
+      hairColor: HAIR_COLORS[(h>>3)%HAIR_COLORS.length],
+      hairStyle: HAIR_STYLES[(h>>5)%HAIR_STYLES.length],
+      outfitPrimary: OUTFIT_COLORS[(h>>7)%OUTFIT_COLORS.length],
+      outfitAccent: ACCENT_COLORS[(h>>9)%ACCENT_COLORS.length]
+    };
+  }
+  return NPC_LOOKS[name];
+}
+
+/* ============================================================
+   CUTSCENE / DIALOGUE SYSTEM
+   ============================================================ */
+
+function beginStepEvent(step){
+  const e = step.event;
+  if(e.rounds){ startBossCutscene(e); return; }
+  startEventCutscene(e, step);
+}
+
+function openCut(html){
+  const ov = document.getElementById("cutOverlay");
+  ov.innerHTML = `<div class="panel">${html}</div>`;
+  ov.classList.remove("hidden");
+}
+function closeCut(){
+  const ov = document.getElementById("cutOverlay");
+  ov.classList.add("hidden");
+  ov.innerHTML = "";
+}
+
+function typewriter(el, text, speed, onDone){
+  let i = 0;
+  el.textContent = "";
+  el.dataset.full = text;
+  el.dataset.done = "0";
+  const iv = setInterval(()=>{
+    i++;
+    el.textContent = text.slice(0,i);
+    if(i>=text.length){ clearInterval(iv); el.dataset.done="1"; if(onDone) onDone(); }
+  }, speed||16);
+  el._skip = ()=>{ clearInterval(iv); el.textContent=text; el.dataset.done="1"; if(onDone) onDone(); };
+}
+
+function startEventCutscene(e, step){
+  const npcName = e.npcName || e.tag;
+  openCut(`
+    <div class="chapter-tag">${e.tag}</div>
+    <div class="stage-row">
+      <div class="stage-portrait"><canvas id="pcPortrait" width="200" height="260"></canvas><div class="who">${S.name||"You"}</div></div>
+      <div class="stage-portrait"><canvas id="npcPortrait" width="200" height="260"></canvas><div class="who">${npcName}</div></div>
+    </div>
+    <p class="dialogue-box" id="dlgText"></p>
+    <div class="choices" id="choiceWrap"></div>
+  `);
+  const pc = document.getElementById("pcPortrait").getContext("2d");
+  const nc = document.getElementById("npcPortrait").getContext("2d");
+  let t0 = performance.now();
+  const anim = setInterval(()=>{
+    const t = (performance.now()-t0)/1000;
+    paintPortrait(pc, S.appearance, true, t);
+    paintPortrait(nc, npcAppearance(npcName), false, t);
+  }, 60);
+
+  const dlg = document.getElementById("dlgText");
+  const wrap = document.getElementById("choiceWrap");
+  typewriter(dlg, e.text, 15, ()=>{
+    e.choices.forEach((c,i)=>{
+      const b = document.createElement("button");
+      b.className = "choice"; b.textContent = c.label;
+      b.onclick = ()=>{ clearInterval(anim); resolveChoice(e, c, step); };
+      wrap.appendChild(b);
+    });
+  });
+  dlg.onclick = ()=>{ if(dlg.dataset.done!=="1") dlg._skip(); };
+}
+
+function paintPortrait(ctx, appear, talking, t){
+  ctx.clearRect(0,0,200,260);
+  const g = ctx.createLinearGradient(0,0,0,260);
+  g.addColorStop(0,"#3a4a68"); g.addColorStop(1,"#22283a");
+  ctx.fillStyle = g; ctx.fillRect(0,0,200,260);
+  drawHuman(ctx, 100, 230, 3.2, appear, {facing:1, idlePhase:t*1.6, talking, talkPhase:t*6, gesture: talking?"talk":"idle"});
+}
+
+function resolveChoice(e, c, step){
+  applyAlign(c.align);
+  let grantedPower = null;
+  if(e.grantsPower){
+    const pid = rollPower(S.locationId, S.powers);
+    S.powers.push(pid);
+    grantedPower = POWERS[pid];
+  }
+  S.log.push({chapter:currentChapter().name, tag:e.tag, choice:c.label, align:c.align});
+  const pose = poseForChoice(c);
+  openCut(`
+    <div class="chapter-tag">${e.tag}</div>
+    <div class="cut-solo"><canvas id="soloPortrait" width="300" height="380"></canvas></div>
+    <p class="flavor" id="resultText"></p>
+    ${grantedPower ? `<ul class="powerlist"><li><div class="pname">⚡ Power Awakened: ${grantedPower.name}</div><div class="pdesc">${grantedPower.desc}</div></li></ul>` : ""}
+    <button class="primary" id="contBtn" disabled>Continue</button>
+  `);
+  const sc = document.getElementById("soloPortrait").getContext("2d");
+  let t0 = performance.now();
+  const anim = setInterval(()=>{
+    const t = (performance.now()-t0)/1000;
+    sc.clearRect(0,0,300,380);
+    const g = sc.createLinearGradient(0,0,0,380);
+    g.addColorStop(0, pose==="villainous"?"#5a2020":pose==="stealthy"?"#2a2a3a":"#20365a");
+    g.addColorStop(1,"#14141f");
+    sc.fillStyle = g; sc.fillRect(0,0,300,380);
+    drawHuman(sc, 150, 340, 4.6, S.appearance, {facing:1, idlePhase:t*1.2, gesture:pose});
+  }, 60);
+  const rt = document.getElementById("resultText");
+  typewriter(rt, c.result, 16, ()=>{ document.getElementById("contBtn").disabled=false; });
+  rt.onclick = ()=>{ if(rt.dataset.done!=="1") rt._skip(); };
+  document.getElementById("contBtn").onclick = ()=>{
+    clearInterval(anim);
+    closeCut();
+    advanceStep(step);
+  };
+}
+
+function advanceStep(step){
+  S.stepIndex++;
+  if(S.stepIndex >= currentChapter().steps.length){
+    S.chapterIndex++;
+    S.stepIndex = 0;
+    if(S.chapterIndex >= CHAPTERS.length){ renderFinale(); return; }
+    stopGameLoop();
+    renderChapterIntro();
+    return;
+  }
+  updateRoomLabel();
+}
+
+/* ---------- boss / fight (multi-round) ---------- */
+function startBossCutscene(boss){
+  boss._round = boss._round || 0;
+  const step = currentStep();
+  if(boss.name==="Graduation Night") S.promMode = true;
+  openCut(`
+    <div class="chapter-tag">Confrontation</div>
+    <h2 class="subtitle">${boss.name}</h2>
+    <div class="cut-solo"><canvas id="soloPortrait" width="300" height="380"></canvas></div>
+    <p id="dlgText"></p>
+    <button class="primary" id="faceBtn" disabled>Face It</button>
+  `);
+  paintSoloIdle();
+  const dlg = document.getElementById("dlgText");
+  typewriter(dlg, boss.intro, 15, ()=>{ document.getElementById("faceBtn").disabled=false; });
+  dlg.onclick = ()=>{ if(dlg.dataset.done!=="1") dlg._skip(); };
+  document.getElementById("faceBtn").onclick = ()=>renderBossRound(boss, step);
+}
+let soloAnimTimer = null;
+function paintSoloIdle(){
+  const el = document.getElementById("soloPortrait");
+  if(!el) return;
+  const sc = el.getContext("2d");
+  let t0 = performance.now();
+  clearInterval(soloAnimTimer);
+  soloAnimTimer = setInterval(()=>{
+    const t = (performance.now()-t0)/1000;
+    sc.clearRect(0,0,300,380);
+    const g = sc.createLinearGradient(0,0,0,380);
+    g.addColorStop(0,"#20365a"); g.addColorStop(1,"#14141f");
+    sc.fillStyle = g; sc.fillRect(0,0,300,380);
+    drawHuman(sc, 150, 340, 4.6, S.appearance, {facing:1, idlePhase:t*1.2, gesture:"idle"});
+  }, 60);
+}
+function renderBossRound(boss, step){
+  if(boss._round >= boss.rounds.length){
+    S.promMode = false;
+    boss._round = 0;
+    clearInterval(soloAnimTimer);
+    closeCut();
+    advanceStep(step);
+    return;
+  }
+  const round = boss.rounds[boss._round];
+  const hpPct = Math.max(8, 100-(boss._round/boss.rounds.length)*72);
+  openCut(`
+    <div class="chapter-tag">${boss.name}</div>
+    <div class="hp-row"><div class="hp-label">${boss.name}</div><div class="hp-track"><div class="hp-fill" style="width:${hpPct}%"></div></div></div>
+    <p class="dialogue-box" id="dlgText2"></p>
+    <div class="choices" id="choiceWrap2"></div>
+  `);
+  const dlg = document.getElementById("dlgText2");
+  const wrap = document.getElementById("choiceWrap2");
+  typewriter(dlg, round.text, 15, ()=>{
+    round.choices.forEach(c=>{
+      const b = document.createElement("button");
+      b.className="choice"; b.textContent=c.label;
+      b.onclick = ()=>resolveBossChoice(boss, round, c, step);
+      wrap.appendChild(b);
+    });
+  });
+  dlg.onclick = ()=>{ if(dlg.dataset.done!=="1") dlg._skip(); };
+}
+function resolveBossChoice(boss, round, c, step){
+  applyAlign(c.align);
+  S.log.push({chapter:currentChapter().name, tag:boss.name, choice:c.label, align:c.align});
+  let grantedPower = null;
+  if(boss.grantsPower && boss._round===0){
+    const pid = rollPower(S.locationId, S.powers);
+    S.powers.push(pid);
+    grantedPower = POWERS[pid];
+  }
+  boss._round++;
+  const pose = poseForChoice(c);
+  openCut(`
+    <div class="chapter-tag">${boss.name}</div>
+    <div class="cut-solo"><canvas id="soloPortrait" width="300" height="380"></canvas></div>
+    <p class="flavor" id="resultText2"></p>
+    ${grantedPower ? `<ul class="powerlist"><li><div class="pname">⚡ Power Surge: ${grantedPower.name}</div><div class="pdesc">${grantedPower.desc}</div></li></ul>` : ""}
+    <button class="primary" id="contBtn2" disabled>Continue</button>
+  `);
+  const sc = document.getElementById("soloPortrait").getContext("2d");
+  let t0 = performance.now();
+  clearInterval(soloAnimTimer);
+  soloAnimTimer = setInterval(()=>{
+    const t = (performance.now()-t0)/1000;
+    sc.clearRect(0,0,300,380);
+    const g = sc.createLinearGradient(0,0,0,380);
+    g.addColorStop(0, pose==="villainous"?"#5a2020":pose==="stealthy"?"#2a2a3a":"#20365a");
+    g.addColorStop(1,"#14141f");
+    sc.fillStyle = g; sc.fillRect(0,0,300,380);
+    drawHuman(sc, 150, 340, 4.6, S.appearance, {facing:1, idlePhase:t*1.2, gesture:pose});
+  }, 60);
+  const rt = document.getElementById("resultText2");
+  typewriter(rt, c.result, 16, ()=>{ document.getElementById("contBtn2").disabled=false; });
+  rt.onclick = ()=>{ if(rt.dataset.done!=="1") rt._skip(); };
+  document.getElementById("contBtn2").onclick = ()=>renderBossRound(boss, step);
+}
+
+/* ============================================================
+   FINALE
+   ============================================================ */
+function getTitleInfo(){
+  const p = pcts();
+  const entries = [
+    {key:"hero", val:p.hero, cls:"hero", name:"HERO"},
+    {key:"villain", val:p.villain, cls:"villain", name:"VILLAIN"},
+    {key:"vigilante", val:p.vigilante, cls:"vigilante", name:"VIGILANTE"}
+  ];
+  entries.sort((a,b)=>b.val-a.val);
+  const top = entries[0];
+  let prefix = "";
+  if(top.val>=70) prefix="TRUE ";
+  else if(top.val<45) prefix="WAVERING ";
+  return { title: prefix+top.name, cls: top.cls, pct: top.val };
+}
+function locName(){ return LOCATIONS.find(l=>l.id===S.locationId).name; }
+function pronoun(){ return S.gender==="Female" ? "she" : "he"; }
+function possessive(){ return S.gender==="Female" ? "her" : "his"; }
+
+function buildOriginStory(info){
+  const powerNames = S.powers.map(id=>POWERS[id].name);
+  const powerText = powerNames.length ? powerNames.join(", ") : "abilities still not fully understood";
+  const bigMoments = S.log.filter(l=>l.tag===JUNIOR_BOSS.name || l.tag===FINAL_BOSS.name);
+  const firstBig = bigMoments[0];
+  let arc = "";
+  if(info.cls==="hero") arc = `By graduation, there was no question left. ${S.name} had spent four years choosing, again and again, to put other people first — until it stopped being a choice and started being who ${pronoun()} was.`;
+  else if(info.cls==="villain") arc = `By graduation, ${S.name} had stopped pretending otherwise. Every shortcut, every score settled, every line crossed had led here — and ${pronoun()} walked toward it without flinching.`;
+  else arc = `By graduation, ${S.name} had learned to work in the space between the rules — never quite hero, never quite villain, just the person who showed up when no one else could, and vanished before anyone could ask questions.`;
+  return `${S.name} grew up in ${locName()}, an ordinary student until freshman-year instincts and a gym-class accident said otherwise. What emerged was ${powerText}. ${arc} ${firstBig ? `The turning point came the night ${possessive()} path crossed The Recruiter's — a choice ${pronoun()} still thinks about.` : ""} Today, ${S.name} graduates not just from high school, but into whatever comes next: ${info.title.toLowerCase()}, ${info.pct}% certain, and still writing the rest of the story.`;
+}
+
+function renderFinale(){
+  stopGameLoop();
+  const info = getTitleInfo();
+  const origin = buildOriginStory(info);
+  window.onkeydown=null; window.onkeyup=null;
+  app.innerHTML = `
+    ${meterBarHTML()}
+    <div class="panel" style="text-align:center;">
+      <div class="chapter-tag">Graduation Night</div>
+      <h2 class="subtitle">Your Verdict</h2>
+      <div class="stamp-wrap"><div class="stamp ${info.cls}">${info.title}<span class="sub">${info.pct}% CERTAIN</span></div></div>
+      <div class="cut-solo"><canvas id="finalPortrait" width="300" height="380"></canvas></div>
+      <div class="final-pcts">
+        <div><div class="n" style="color:var(--hero)">${pcts().hero}%</div><div class="l">Hero</div></div>
+        <div><div class="n" style="color:var(--villain)">${pcts().villain}%</div><div class="l">Villain</div></div>
+        <div><div class="n" style="color:var(--vigilante)">${pcts().vigilante}%</div><div class="l">Vigilante</div></div>
+      </div>
+      <p style="text-align:left;">${origin}</p>
+      <h2 class="subtitle" style="font-size:18px; text-align:left;">Powers</h2>
+      <ul class="powerlist" style="text-align:left;">
+        ${S.powers.map(id=>`<li><div class="pname">${POWERS[id].name}</div><div class="pdesc">${POWERS[id].desc}</div></li>`).join("") || "<li><div class='pdesc'>None awakened — a rare and strange path.</div></li>"}
+      </ul>
+      <button class="primary" id="againBtn">Play Again — New Life</button>
+    </div>`;
+  const sc = document.getElementById("finalPortrait").getContext("2d");
+  let t0 = performance.now();
+  const anim = setInterval(()=>{
+    const t = (performance.now()-t0)/1000;
+    sc.clearRect(0,0,300,380);
+    const g = sc.createLinearGradient(0,0,0,380);
+    g.addColorStop(0, info.cls==="villain"?"#5a2020":info.cls==="vigilante"?"#3a2a4a":"#20365a");
+    g.addColorStop(1,"#14141f");
+    sc.fillStyle = g; sc.fillRect(0,0,300,380);
+    drawHuman(sc, 150, 340, 4.6, S.appearance, {facing:1, idlePhase:t*1.2, gesture: info.cls==="villain"?"villainous":info.cls==="vigilante"?"stealthy":"heroic"});
+  }, 60);
+  document.getElementById("againBtn").onclick = ()=>{ clearInterval(anim); S=null; renderTitleScreen(); };
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+renderTitleScreen();
+</script>
+</body>
+</html>
