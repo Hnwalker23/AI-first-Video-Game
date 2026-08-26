@@ -133,8 +133,9 @@
     background:var(--outline); padding:6px 12px; border-radius:6px; white-space:nowrap;
   }
   #objective{
-    font-family:'Oswald'; font-size:11px; letter-spacing:0.6px; color:rgba(242,237,225,0.85);
-    background:rgba(11,11,18,0.5); padding:6px 10px; border-radius:6px; text-align:right; flex:1; min-width:160px;
+    font-family:'Oswald'; font-weight:700; font-size:13px; letter-spacing:0.4px; color:var(--pow);
+    background:rgba(11,11,18,0.65); padding:7px 12px; border-radius:6px; border:1.5px solid rgba(245,197,66,0.5);
+    text-align:right; flex:1; min-width:180px;
   }
   #canvasFrame{
     border:4px solid var(--outline); border-radius:6px; overflow:hidden; position:relative;
@@ -165,9 +166,9 @@
   .hint{ text-align:center; font-family:'Oswald'; font-size:10.5px; letter-spacing:1px; color:rgba(242,237,225,0.45); margin-top:8px; text-transform:uppercase; }
 
   /* ---- cutscene overlay ---- */
-  #cutOverlay{ position:absolute; inset:0; background:rgba(11,11,18,0.72); display:flex; align-items:center; justify-content:center; padding:14px; }
+  #cutOverlay{ position:fixed; inset:0; background:rgba(11,11,18,0.78); display:flex; align-items:center; justify-content:center; padding:16px; z-index:200; }
   #cutOverlay.hidden{ display:none; }
-  #cutOverlay .panel{ width:100%; max-height:96%; overflow-y:auto; }
+  #cutOverlay .panel{ width:100%; max-width:600px; max-height:92vh; overflow-y:auto; }
   .stage-row{ display:flex; justify-content:center; gap:16px; margin-bottom:14px; }
   .stage-portrait{ text-align:center; }
   .stage-portrait canvas{ width:110px; height:140px; background:linear-gradient(#3a4a68,#22283a); border:3px solid var(--outline); border-radius:8px; }
@@ -249,6 +250,14 @@ function rollPower(locId, exclude){
   return pool[Math.floor(Math.random()*pool.length)];
 }
 
+const ORIGIN_MANIFESTATIONS = {
+  coastal:  "every sprinkler head in the gym snaps on at once, the spray curving in midair toward your outstretched hand",
+  mountain: "frost spreads out from your feet in a perfect ring across the gym floor",
+  desert:   "the air over your skin shimmers with sudden, impossible heat, and the kid next to you steps back",
+  forest:   "the potted plant by the bleachers snaps upright and leans toward you like it's chasing sunlight",
+  urban:    "every light in the gym flickers, surging brighter each time it points toward your hand"
+};
+
 const FRESHMAN_POOL = [
   { tag:"Locker Bully", npcName:"A Junior", grantsPower:false,
     text:"First week. A junior corners a smaller freshman by the lockers, laughing while their books scatter across the floor.",
@@ -258,7 +267,7 @@ const FRESHMAN_POOL = [
       {label:"Film it for laughs and post it before lunch.", align:{h:0,v:2,g:0}, result:"The video gets three hundred views by second period. You feel something curdle in your stomach — and ignore it."}
     ]},
   { tag:"Gym Class Accident", npcName:"Coach Reyes", grantsPower:true,
-    text:"During a routine drill, your body does something it shouldn't. The floor cracks, or your water bottle spins on its own, or the lights flicker toward your hand. Something in you has woken up.",
+    text:"During a routine drill, your body does something it shouldn't — {{ORIGIN}}. Something in you has woken up.",
     choices:[
       {label:"Panic, but immediately try to help the classmate nearest you.", align:{h:2,v:0,g:0}, result:"You mask the moment by 'catching' a falling teammate with strength you didn't have yesterday. Only you know what really happened."},
       {label:"Let it show, just for a second, just to see their faces.", align:{h:0,v:2,g:0}, result:"A ripple of fear and awe moves through the gym. You like it more than you expect to."},
@@ -752,7 +761,7 @@ function drawCreatorPreview(){
   const grad = c.createLinearGradient(0,0,0,h);
   grad.addColorStop(0,"#3a4a68"); grad.addColorStop(1,"#22283a");
   c.fillStyle = grad; c.fillRect(0,0,w,h);
-  drawHuman(c, w/2, h*0.82, 3.4, S.appearance, {facing:1, idlePhase:creatorIdle, gesture:"idle"});
+  drawHuman(c, w/2, h*0.906, 2.1, S.appearance, {facing:1, idlePhase:creatorIdle, gesture:"idle"});
 }
 
 function renderChapterIntro(){
@@ -771,11 +780,11 @@ function renderChapterIntro(){
 
 function objectiveText(){
   const step = currentStep();
-  if(!step) return "Head to the front doors — the day is done.";
+  if(!step) return "🎯 Head to the Front Doors — the day is done.";
   const room = ROOMS[step.room];
   const name = step.event.npcName || step.event.name || step.event.tag;
-  if(step.room==="home") return `Something's waiting for you at home tonight.`;
-  return `Find ${name} — try the ${room.name}.`;
+  if(step.room==="home") return `🎯 Head home — something's waiting for you tonight.`;
+  return `🎯 Find ${name} — in the ${room.name}`;
 }
 
 /* ============================================================
@@ -893,9 +902,9 @@ function nearestInteractable(){
   });
   return best;
 }
+const FLAGGED_X = { hallway:750, classroom:700, gym:700, library:700, cafeteria:700, courtyard:700, home:750 };
 function flaggedX(){
-  if(S.room==="hallway") return 480;
-  return 460;
+  return FLAGGED_X[S.room] || 700;
 }
 function updatePrompt(){
   const btn = document.getElementById("promptBtn");
@@ -1010,14 +1019,27 @@ function drawRoomBackground(ctx, kind){
 }
 
 function drawDoors(ctx){
+  const step = currentStep();
+  const targetRoom = step ? step.room : "home";
   room().doors.forEach(d=>{
     const sx = toScreen(d.x);
     if(sx<-60||sx>960) return;
+    const isTarget = room().kind==="hallway" && d.leadsTo===targetRoom;
+    if(isTarget){
+      const pulse = Math.sin(performance.now()/220);
+      ctx.save();
+      ctx.shadowColor = "#f5c542"; ctx.shadowBlur = 16+pulse*6;
+      ctx.fillStyle = "rgba(245,197,66,0.85)";
+      roundRect(ctx, sx-28, 206, 56, 158, 6); ctx.fill();
+      ctx.restore();
+      ctx.fillStyle="#f5c542"; ctx.font="bold 22px Bangers, cursive"; ctx.textAlign="center";
+      ctx.fillText("▼", sx, 194+pulse*4);
+    }
     ctx.fillStyle = "#2a2015";
     roundRect(ctx, sx-24, 210, 48, 150, 4); ctx.fill();
     ctx.fillStyle = "#c99a3e";
     ctx.beginPath(); ctx.arc(sx+16,285,3,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle = "#0b0b12";
+    ctx.fillStyle = isTarget ? "#8a1f1f" : "#0b0b12";
     ctx.font = "600 11px Oswald, sans-serif"; ctx.textAlign="center";
     ctx.fillText(d.label, sx, 200);
   });
@@ -1026,7 +1048,9 @@ function drawAmbientNpcs(ctx){
   (AMBIENT_NPCS[S.room]||[]).forEach(n=>{
     const sx = toScreen(n.x);
     if(sx<-40||sx>940) return;
+    ctx.save(); ctx.globalAlpha = 0.8;
     drawHuman(ctx, sx, 410, 2.6, npcAppearance(n.name), {facing:-1, idlePhase:performance.now()/700, gesture:"idle"});
+    ctx.restore();
     ctx.fillStyle="rgba(11,11,18,0.7)"; ctx.font="600 10px Oswald, sans-serif"; ctx.textAlign="center";
     ctx.fillText(n.name, sx, 250);
   });
@@ -1036,12 +1060,23 @@ function drawFlaggedNpc(ctx){
   if(!step || step.room!==S.room) return;
   const x = flaggedX(); const sx = toScreen(x);
   const e = step.event;
+  const pulse = 0.5+0.5*Math.sin(performance.now()/260);
+  ctx.save();
+  ctx.globalAlpha = 0.3+0.25*pulse;
+  ctx.fillStyle = "#f5c542";
+  ctx.beginPath(); ctx.ellipse(sx, 412, 36+pulse*5, 11, 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
   drawHuman(ctx, sx, 410, 2.8, npcAppearance(e.npcName||e.name||e.tag), {facing:-1, idlePhase:performance.now()/700, gesture:"idle"});
-  ctx.fillStyle="rgba(11,11,18,0.7)"; ctx.font="600 10px Oswald, sans-serif"; ctx.textAlign="center";
-  ctx.fillText(e.npcName||e.name||e.tag, sx, 250);
+  const label = e.npcName||e.name||e.tag;
+  ctx.font="700 11px Oswald, sans-serif"; ctx.textAlign="center";
+  const tw = ctx.measureText(label).width;
+  ctx.fillStyle="rgba(245,197,66,0.94)";
+  roundRect(ctx, sx-tw/2-8, 240, tw+16, 18, 9); ctx.fill();
+  ctx.fillStyle="#0b0b12";
+  ctx.fillText(label, sx, 253);
   const bob = Math.sin(performance.now()/260)*4;
-  ctx.fillStyle="#f5c542"; ctx.font="bold 24px Bangers, cursive"; ctx.textAlign="center";
-  ctx.fillText("!", sx, 220+bob);
+  ctx.fillStyle="#f5c542"; ctx.font="bold 26px Bangers, cursive"; ctx.textAlign="center";
+  ctx.fillText("!", sx, 210+bob);
 }
 function drawPlayer(ctx){
   const sx = toScreen(S.playerX);
@@ -1130,7 +1165,10 @@ function startEventCutscene(e, step){
 
   const dlg = document.getElementById("dlgText");
   const wrap = document.getElementById("choiceWrap");
-  typewriter(dlg, e.text, 15, ()=>{
+  const resolvedText = e.text.includes("{{ORIGIN}}")
+    ? e.text.replace("{{ORIGIN}}", ORIGIN_MANIFESTATIONS[S.locationId] || ORIGIN_MANIFESTATIONS.urban)
+    : e.text;
+  typewriter(dlg, resolvedText, 15, ()=>{
     e.choices.forEach((c,i)=>{
       const b = document.createElement("button");
       b.className = "choice"; b.textContent = c.label;
@@ -1146,7 +1184,7 @@ function paintPortrait(ctx, appear, talking, t){
   const g = ctx.createLinearGradient(0,0,0,260);
   g.addColorStop(0,"#3a4a68"); g.addColorStop(1,"#22283a");
   ctx.fillStyle = g; ctx.fillRect(0,0,200,260);
-  drawHuman(ctx, 100, 230, 3.2, appear, {facing:1, idlePhase:t*1.6, talking, talkPhase:t*6, gesture: talking?"talk":"idle"});
+  drawHuman(ctx, 100, 235, 1.7, appear, {facing:1, idlePhase:t*1.6, talking, talkPhase:t*6, gesture: talking?"talk":"idle"});
 }
 
 function resolveChoice(e, c, step){
@@ -1175,7 +1213,7 @@ function resolveChoice(e, c, step){
     g.addColorStop(0, pose==="villainous"?"#5a2020":pose==="stealthy"?"#2a2a3a":"#20365a");
     g.addColorStop(1,"#14141f");
     sc.fillStyle = g; sc.fillRect(0,0,300,380);
-    drawHuman(sc, 150, 340, 4.6, S.appearance, {facing:1, idlePhase:t*1.2, gesture:pose});
+    drawHuman(sc, 150, 340, 2.5, S.appearance, {facing:1, idlePhase:t*1.2, gesture:pose});
   }, 60);
   const rt = document.getElementById("resultText");
   typewriter(rt, c.result, 16, ()=>{ document.getElementById("contBtn").disabled=false; });
@@ -1231,7 +1269,7 @@ function paintSoloIdle(){
     const g = sc.createLinearGradient(0,0,0,380);
     g.addColorStop(0,"#20365a"); g.addColorStop(1,"#14141f");
     sc.fillStyle = g; sc.fillRect(0,0,300,380);
-    drawHuman(sc, 150, 340, 4.6, S.appearance, {facing:1, idlePhase:t*1.2, gesture:"idle"});
+    drawHuman(sc, 150, 340, 2.5, S.appearance, {facing:1, idlePhase:t*1.2, gesture:"idle"});
   }, 60);
 }
 function renderBossRound(boss, step){
@@ -1291,7 +1329,7 @@ function resolveBossChoice(boss, round, c, step){
     g.addColorStop(0, pose==="villainous"?"#5a2020":pose==="stealthy"?"#2a2a3a":"#20365a");
     g.addColorStop(1,"#14141f");
     sc.fillStyle = g; sc.fillRect(0,0,300,380);
-    drawHuman(sc, 150, 340, 4.6, S.appearance, {facing:1, idlePhase:t*1.2, gesture:pose});
+    drawHuman(sc, 150, 340, 2.5, S.appearance, {facing:1, idlePhase:t*1.2, gesture:pose});
   }, 60);
   const rt = document.getElementById("resultText2");
   typewriter(rt, c.result, 16, ()=>{ document.getElementById("contBtn2").disabled=false; });
@@ -1365,7 +1403,7 @@ function renderFinale(){
     g.addColorStop(0, info.cls==="villain"?"#5a2020":info.cls==="vigilante"?"#3a2a4a":"#20365a");
     g.addColorStop(1,"#14141f");
     sc.fillStyle = g; sc.fillRect(0,0,300,380);
-    drawHuman(sc, 150, 340, 4.6, S.appearance, {facing:1, idlePhase:t*1.2, gesture: info.cls==="villain"?"villainous":info.cls==="vigilante"?"stealthy":"heroic"});
+    drawHuman(sc, 150, 340, 2.5, S.appearance, {facing:1, idlePhase:t*1.2, gesture: info.cls==="villain"?"villainous":info.cls==="vigilante"?"stealthy":"heroic"});
   }, 60);
   document.getElementById("againBtn").onclick = ()=>{ clearInterval(anim); S=null; renderTitleScreen(); };
 }
