@@ -93,8 +93,8 @@
   .hp-fill{height:100%; background:var(--villain); transition:width .4s ease;}
   .powerlist{list-style:none; padding:0; margin:0 0 14px;}
   .powerlist li{background:var(--paper-dim); border:2px solid var(--outline); border-radius:6px; padding:10px 12px; margin-bottom:8px;}
-  .powerlist .pname{font-family:'Oswald'; font-weight:700; letter-spacing:0.5px; font-size:14px;}
-  .powerlist .pdesc{font-size:13px; color:#5a5a68; margin-top:2px;}
+  .powerlist .pname{display:block; font-family:'Oswald'; font-weight:700; letter-spacing:0.5px; font-size:14px; line-height:1.35;}
+  .powerlist .pdesc{display:block; font-size:13px; color:#5a5a68; margin-top:6px; line-height:1.4;}
   .stamp-wrap{display:flex; justify-content:center; margin:8px 0 20px;}
   .stamp{font-family:'Bangers'; font-size:32px; letter-spacing:2px; border:6px solid currentColor; border-radius:10px;
     padding:14px 24px; text-align:center; transform:rotate(-6deg) scale(0); animation:stamp-in .45s cubic-bezier(.2,1.4,.4,1) forwards; animation-delay:.15s;}
@@ -110,8 +110,8 @@
   .meter .pct{font-family:'Bangers'; font-size:19px; color:var(--paper); line-height:1;}
   .meter .name{font-family:'Oswald'; font-size:9px; letter-spacing:1.2px; color:rgba(242,237,225,0.65); text-transform:uppercase; margin-top:1px;}
   .meter.hero .pct{color:#7ea1e8;} .meter.villain .pct{color:#e8757c;} .meter.vigilante .pct{color:#b79fe0;}
-  .meter-track{height:4px; border-radius:4px; background:rgba(242,237,225,0.14); margin-top:5px; overflow:hidden;}
-  .meter-fill{height:100%; border-radius:4px;}
+  .meter-track{height:6px; border-radius:4px; background:rgba(0,0,0,0.4); margin-top:5px; overflow:hidden;}
+  .meter-fill{height:100%; border-radius:4px; transition:width 0.4s ease-out;}
   .meter.hero .meter-fill{background:var(--hero);} .meter.villain .meter-fill{background:var(--villain);} .meter.vigilante .meter-fill{background:var(--vigilante);}
 
   /* ---- character creator ---- */
@@ -202,7 +202,6 @@ function defaultAppearance(){
 
 /* ============================================================
    STORY DATA — powers, locations, chapters, dialogue
-   (content preserved from the original design; only the delivery changed)
    ============================================================ */
 
 const POWERS = {
@@ -258,41 +257,42 @@ const ORIGIN_MANIFESTATIONS = {
   urban:    "every light in the gym flickers, surging brighter each time it points toward your hand"
 };
 
+/* ADJUSTED DECISION WEIGHTS: Small=1-2, Med=3-4, Big/Boss=5-8 */
 const FRESHMAN_POOL = [
   { tag:"Locker Bully", npcName:"A Junior", grantsPower:false,
     text:"First week. A junior corners a smaller freshman by the lockers, laughing while their books scatter across the floor.",
     choices:[
-      {label:"Step in and stop it, in front of everyone.", align:{h:2,v:0,g:0}, result:"You plant yourself between them. The junior backs off, muttering. The freshman doesn't forget it."},
-      {label:"Wait until they're alone, then make the junior regret it privately.", align:{h:0,v:0,g:2}, result:"Later, in an empty hallway, you make sure the junior understands this doesn't happen twice. No one sees it. No one needs to."},
-      {label:"Film it for laughs and post it before lunch.", align:{h:0,v:2,g:0}, result:"The video gets three hundred views by second period. You feel something curdle in your stomach — and ignore it."}
+      {label:"Step in and stop it, in front of everyone.", align:{h:2,v:-1,g:0}, result:"You plant yourself between them. The junior backs off, muttering. The freshman doesn't forget it."},
+      {label:"Wait until they're alone, then make the junior regret it privately.", align:{h:0,v:-1,g:3}, result:"Later, in an empty hallway, you make sure the junior understands this doesn't happen twice. No one sees it. No one needs to."},
+      {label:"Film it for laughs and post it before lunch.", align:{h:-1,v:3,g:0}, result:"The video gets three hundred views by second period. You feel something curdle in your stomach — and ignore it."}
     ]},
   { tag:"Gym Class Accident", npcName:"Coach Reyes", grantsPower:true,
     text:"During a routine drill, your body does something it shouldn't — {{ORIGIN}}. Something in you has woken up.",
     choices:[
-      {label:"Panic, but immediately try to help the classmate nearest you.", align:{h:2,v:0,g:0}, result:"You mask the moment by 'catching' a falling teammate with strength you didn't have yesterday. Only you know what really happened."},
-      {label:"Let it show, just for a second, just to see their faces.", align:{h:0,v:2,g:0}, result:"A ripple of fear and awe moves through the gym. You like it more than you expect to."},
-      {label:"Shut it down instantly and tell no one.", align:{h:0,v:0,g:2}, result:"You bury the moment before the bell rings. Whatever this is, it's yours alone — for now."}
+      {label:"Panic, but immediately try to help the classmate nearest you.", align:{h:3,v:-1,g:0}, result:"You mask the moment by 'catching' a falling teammate with strength you didn't have yesterday. Only you know what really happened."},
+      {label:"Let it show, just for a second, just to see their faces.", align:{h:-1,v:3,g:0}, result:"A ripple of fear and awe moves through the gym. You like it more than you expect to."},
+      {label:"Shut it down instantly and tell no one.", align:{h:0,v:-1,g:3}, result:"You bury the moment before the bell rings. Whatever this is, it's yours alone — for now."}
     ]},
   { tag:"Hallway Gossip", npcName:"Ms. Alden", grantsPower:false,
     text:"You overhear two teachers in the hallway, voices low: a testing scandal, grades quietly altered for a coach's star player.",
     choices:[
-      {label:"Report it to the principal's office that afternoon.", align:{h:2,v:0,g:0}, result:"It takes three weeks, but an investigation opens. You're not thanked. You didn't do it to be thanked."},
-      {label:"Approach the teacher directly and offer to keep quiet — for a price.", align:{h:0,v:2,g:0}, result:"The favor you're owed will come due eventually. You already know you'll collect."},
-      {label:"Dig quietly on your own until you have real proof, then leak it anonymously.", align:{h:0,v:0,g:2}, result:"Two weeks of careful, unseen work. When the story breaks, no one traces it back to you."}
+      {label:"Report it to the principal's office that afternoon.", align:{h:2,v:-1,g:0}, result:"It takes three weeks, but an investigation opens. You're not thanked. You didn't do it to be thanked."},
+      {label:"Approach the teacher directly and offer to keep quiet — for a price.", align:{h:-1,v:2,g:0}, result:"The favor you're owed will come due eventually. You already know you'll collect."},
+      {label:"Dig quietly on your own until you have real proof, then leak it anonymously.", align:{h:0,v:-1,g:2}, result:"Two weeks of careful, unseen work. When the story breaks, no one traces it back to you."}
     ]},
   { tag:"Group Project", npcName:"Deja", grantsPower:false,
     text:"Your project partner is drowning — two jobs, a sick parent, a deadline tomorrow. The rest of the group wants to cut them loose.",
     choices:[
-      {label:"Quietly redo their half of the work yourself overnight.", align:{h:2,v:0,g:0}, result:"You hand in a project no one else knows you carried. Your partner never finds out how close they came to failing."},
-      {label:"Let the group vote them off — it's not your problem.", align:{h:0,v:2,g:0}, result:"The grade is safe. Your partner isn't. You tell yourself it's just how the world works."},
+      {label:"Quietly redo their half of the work yourself overnight.", align:{h:2,v:-1,g:0}, result:"You hand in a project no one else knows you carried. Your partner never finds out how close they came to failing."},
+      {label:"Let the group vote them off — it's not your problem.", align:{h:-1,v:2,g:0}, result:"The grade is safe. Your partner isn't. You tell yourself it's just how the world works."},
       {label:"Cut a deal: you'll cover for them if they owe you later.", align:{h:0,v:1,g:1}, result:"An IOU, freshman year. You're already thinking in favors and leverage."}
     ]},
   { tag:"Break-In Alert", npcName:"Your Phone", grantsPower:false,
     text:"A news alert lights up half the phones in class: a break-in three blocks from school, still in progress.",
     choices:[
       {label:"Text the tip to police and stay in class.", align:{h:1,v:0,g:0}, result:"You did the responsible thing. It doesn't feel like enough."},
-      {label:"Sneak out and handle it yourself, quietly.", align:{h:0,v:0,g:2}, result:"You're back before the bell rings, pulse still hammering, no one the wiser."},
-      {label:"Go — not to stop it, but to see what you could take for yourself.", align:{h:0,v:2,g:0}, result:"You don't tell anyone what you walked away with. You like how easy it was."}
+      {label:"Sneak out and handle it yourself, quietly.", align:{h:0,v:-1,g:2}, result:"You're back before the bell rings, pulse still hammering, no one the wiser."},
+      {label:"Go — not to stop it, but to see what you could take for yourself.", align:{h:-1,v:2,g:0}, result:"You don't tell anyone what you walked away with. You like how easy it was."}
     ]}
 ];
 
@@ -300,30 +300,30 @@ const SOPHOMORE_POOL = [
   { tag:"Rigged Election", npcName:"Marcus", grantsPower:false,
     text:"You find hard proof the student council election was rigged — ballots swapped by the winning candidate's friend.",
     choices:[
-      {label:"Expose it publicly at the next assembly.", align:{h:2,v:0,g:0}, result:"The fallout is loud and messy. The right person loses their title. You make an enemy."},
-      {label:"Use it to install yourself as the 'fair' replacement candidate.", align:{h:0,v:2,g:0}, result:"You didn't need powers for this one — just leverage. It works perfectly."},
-      {label:"Confront them privately and force a quiet resignation.", align:{h:0,v:0,g:2}, result:"No assembly, no headlines. Just a resignation letter and a secret only two people know."}
+      {label:"Expose it publicly at the next assembly.", align:{h:4,v:-2,g:0}, result:"The fallout is loud and messy. The right person loses their title. You make an enemy."},
+      {label:"Use it to install yourself as the 'fair' replacement candidate.", align:{h:-2,v:4,g:0}, result:"You didn't need powers for this one — just leverage. It works perfectly."},
+      {label:"Confront them privately and force a quiet resignation.", align:{h:0,v:-1,g:4}, result:"No assembly, no headlines. Just a resignation letter and a secret only two people know."}
     ]},
   { tag:"The Retired One", npcName:"Mr. Okafor", grantsPower:false,
     text:"Your history teacher watches you a beat too long after your hand flares warm mid-lecture. After class: 'I used to do what you're starting to do. I can help — or pretend I never noticed.'",
     choices:[
-      {label:"Ask them to train you to protect people, properly.", align:{h:2,v:0,g:0}, result:"Weekly sessions begin. They push you hard toward restraint and responsibility."},
-      {label:"Ask what they know about the money that used to come with powers like these.", align:{h:0,v:2,g:0}, result:"Their face changes. They teach you anyway — techniques with sharper edges than they intended."},
-      {label:"Say nothing. Learn what you can on your own.", align:{h:0,v:0,g:2}, result:"They respect the silence more than they'd admit. You're on your own, and that's how you like it."}
+      {label:"Ask them to train you to protect people, properly.", align:{h:3,v:-1,g:0}, result:"Weekly sessions begin. They push you hard toward restraint and responsibility."},
+      {label:"Ask what they know about the money that used to come with powers like these.", align:{h:-1,v:3,g:0}, result:"Their face changes. They teach you anyway — techniques with sharper edges than they intended."},
+      {label:"Say nothing. Learn what you can on your own.", align:{h:0,v:-1,g:3}, result:"They respect the silence more than they'd admit. You're on your own, and that's how you like it."}
     ]},
   { tag:"Homecoming Rumor", npcName:"Priya", grantsPower:false,
     text:"Someone's spreading a rumor designed to wreck a classmate's homecoming night — and you know exactly who started it.",
     choices:[
-      {label:"Warn the classmate and help them get ahead of it.", align:{h:2,v:0,g:0}, result:"The night is saved. They never learn how close it came to ruin."},
-      {label:"Let it play out. Drama is drama.", align:{h:0,v:1,g:0}, result:"You watch from the sidelines. It's not your fight — you tell yourself that a lot lately."},
-      {label:"Quietly make sure the rumor-starter's night goes just as badly.", align:{h:0,v:1,g:1}, result:"Petty, effective, untraceable. You're getting good at this."}
+      {label:"Warn the classmate and help them get ahead of it.", align:{h:2,v:-1,g:0}, result:"The night is saved. They never learn how close it came to ruin."},
+      {label:"Let it play out. Drama is drama.", align:{h:-1,v:2,g:0}, result:"You watch from the sidelines. It's not your fight — you tell yourself that a lot lately."},
+      {label:"Quietly make sure the rumor-starter's night goes just as badly.", align:{h:-1,v:1,g:2}, result:"Petty, effective, untraceable. You're getting good at this."}
     ]},
   { tag:"Family Trouble", npcName:"Mom", grantsPower:false,
     text:"A scammer has been draining your family's savings for months, posing as a utility company. Your parents don't know yet — you found the voicemails on the kitchen counter.",
     choices:[
-      {label:"Track down evidence and hand it to the real police.", align:{h:2,v:0,g:0}, result:"It takes weeks, but the scammer is arrested. Your family is safe, the legal way."},
-      {label:"Find the scammer yourself and make sure they never try this again.", align:{h:0,v:0,g:2}, result:"You visit them once. They move out of state within the month."},
-      {label:"Take the money back yourself — and then some.", align:{h:0,v:2,g:0}, result:"Your family's savings quietly reappear. So does a taste for solving problems this way."}
+      {label:"Track down evidence and hand it to the real police.", align:{h:3,v:-1,g:0}, result:"It takes weeks, but the scammer is arrested. Your family is safe, the legal way."},
+      {label:"Find the scammer yourself and make sure they never try this again.", align:{h:0,v:-1,g:4}, result:"You visit them once. They move out of state within the month."},
+      {label:"Take the money back yourself — and then some.", align:{h:-1,v:4,g:0}, result:"Your family's savings quietly reappear. So does a taste for solving problems this way."}
     ]}
 ];
 
@@ -331,16 +331,16 @@ const JUNIOR_POOL = [
   { tag:"Locker Room Leak", npcName:"Coach Reyes", grantsPower:false,
     text:"Someone's been using your gym locker to stash something that isn't theirs — and isn't legal.",
     choices:[
-      {label:"Turn it in to the school resource officer.", align:{h:2,v:0,g:0}, result:"You're briefly a suspect until the real story comes out. Doing right isn't always clean."},
-      {label:"Find out who it belongs to and deal with them directly, off school grounds.", align:{h:0,v:0,g:2}, result:"A quiet, one-on-one conversation ends the problem before it starts."},
-      {label:"Keep it. It might be useful.", align:{h:0,v:2,g:0}, result:"You tell yourself it's just insurance. It doesn't feel like insurance."}
+      {label:"Turn it in to the school resource officer.", align:{h:3,v:-1,g:0}, result:"You're briefly a suspect until the real story comes out. Doing right isn't always clean."},
+      {label:"Find out who it belongs to and deal with them directly, off school grounds.", align:{h:0,v:-1,g:3}, result:"A quiet, one-on-one conversation ends the problem before it starts."},
+      {label:"Keep it. It might be useful.", align:{h:-1,v:3,g:0}, result:"You tell yourself it's just insurance. It doesn't feel like insurance."}
     ]},
   { tag:"The Blackout", npcName:"A Passerby", grantsPower:false,
     text:"A grid failure knocks out six blocks near the school, hospital included, backup generators failing one by one.",
     choices:[
-      {label:"Rush to the hospital and use your powers openly to keep things running.", align:{h:2,v:0,g:0}, result:"You're seen. Really seen, for the first time. The city starts asking who you are."},
-      {label:"Fix it quietly from the shadows, then disappear before anyone can thank you.", align:{h:0,v:0,g:2}, result:"The lights come back on. No one knows how. You prefer it that way."},
-      {label:"Let the chaos run a little longer — it's useful cover for something else you need.", align:{h:0,v:2,g:0}, result:"You get what you came for. People got hurt in the dark you could have shortened."}
+      {label:"Rush to the hospital and use your powers openly to keep things running.", align:{h:4,v:-2,g:0}, result:"You're seen. Really seen, for the first time. The city starts asking who you are."},
+      {label:"Fix it quietly from the shadows, then disappear before anyone can thank you.", align:{h:0,v:-1,g:4}, result:"The lights come back on. No one knows how. You prefer it that way."},
+      {label:"Let the chaos run a little longer — it's useful cover for something else you need.", align:{h:-2,v:4,g:0}, result:"You get what you came for. People got hurt in the dark you could have shortened."}
     ]}
 ];
 
@@ -348,16 +348,16 @@ const SENIOR_POOL = [
   { tag:"The Job Offer", npcName:"A Stranger", grantsPower:false,
     text:"A slick, well-funded stranger finds you after school. 'I represent people who could use someone with your talents. Good pay. Better toys. Fewer rules.'",
     choices:[
-      {label:"Turn them down flat and report the encounter to your mentor.", align:{h:2,v:0,g:0}, result:"They leave a card anyway. You burn it."},
-      {label:"Take the meeting. Just to see what 'fewer rules' actually means.", align:{h:0,v:2,g:0}, result:"It means exactly what you think. You're in deeper than you meant to be."},
-      {label:"String them along for information, no commitment.", align:{h:0,v:0,g:2}, result:"You walk away with names and a number no one else has. They don't know they've been used."}
+      {label:"Turn them down flat and report the encounter to your mentor.", align:{h:4,v:-2,g:0}, result:"They leave a card anyway. You burn it."},
+      {label:"Take the meeting. Just to see what 'fewer rules' actually means.", align:{h:-2,v:4,g:0}, result:"It means exactly what you think. You're in deeper than you meant to be."},
+      {label:"String them along for information, no commitment.", align:{h:0,v:-1,g:4}, result:"You walk away with names and a number no one else has. They don't know they've been used."}
     ]},
   { tag:"Missing Prom Funds", npcName:"Ms. Alden", grantsPower:false,
     text:"Prom funds have gone missing from the committee's account, three days before the dance.",
     choices:[
-      {label:"Cover the shortfall out of your own pocket, quietly.", align:{h:2,v:0,g:0}, result:"Prom happens. No one ever learns who saved it."},
-      {label:"Track the money down and make the thief return every cent — with interest.", align:{h:0,v:1,g:1}, result:"The money comes back. So does a reputation for not being someone to steal from."},
-      {label:"Skim a little off the recovered funds for yourself before handing back the rest.", align:{h:0,v:2,g:0}, result:"No one counts closely enough to notice. You do."}
+      {label:"Cover the shortfall out of your own pocket, quietly.", align:{h:3,v:-1,g:0}, result:"Prom happens. No one ever learns who saved it."},
+      {label:"Track the money down and make the thief return every cent — with interest.", align:{h:-1,v:2,g:2}, result:"The money comes back. So does a reputation for not being someone to steal from."},
+      {label:"Skim a little off the recovered funds for yourself before handing back the rest.", align:{h:-1,v:3,g:0}, result:"No one counts closely enough to notice. You do."}
     ]}
 ];
 
@@ -365,9 +365,9 @@ const FRESHMAN_FIGHT = {
   tag:"After-School Ambush", npcName:"Three Seniors", grantsPower:false, isFight:true,
   text:"Three seniors corner you behind the gym, spoiling for a fight they think they'll win easily.",
   choices:[
-    {label:"De-escalate. Talk your way clear without using your powers.", align:{h:1,v:0,g:1}, result:"It works — barely. You walk away without anyone learning what you can do."},
-    {label:"Use just enough power to scare them off, nothing more.", align:{h:2,v:0,g:0}, result:"A flash of what you can do is enough. They scatter. You made sure no one got hurt."},
-    {label:"Make an example of them.", align:{h:0,v:2,g:0}, result:"They run. The story that spreads by Monday is exaggerated — but not by much."}
+    {label:"De-escalate. Talk your way clear without using your powers.", align:{h:2,v:-1,g:2}, result:"It works — barely. You walk away without anyone learning what you can do."},
+    {label:"Use just enough power to scare them off, nothing more.", align:{h:4,v:-2,g:0}, result:"A flash of what you can do is enough. They scatter. You made sure no one got hurt."},
+    {label:"Make an example of them.", align:{h:-2,v:4,g:0}, result:"They run. The story that spreads by Monday is exaggerated — but not by much."}
   ]
 };
 
@@ -375,9 +375,9 @@ const SOPHOMORE_FIGHT = {
   tag:"The Rematch", npcName:"Ironvale Transfer", grantsPower:false, isFight:true,
   text:"The Ironvale transfer wants a real answer this time — a rematch, no witnesses, out past the parking lot fence.",
   choices:[
-    {label:"Show up, but hold back and offer a truce instead.", align:{h:1,v:0,g:1}, result:"They're surprised enough to accept. An uneasy alliance is born."},
-    {label:"Go all in and prove you're the stronger one.", align:{h:0,v:2,g:0}, result:"You win. They don't forget it, and neither does the parking lot."},
-    {label:"Don't show up at all — let them wonder.", align:{h:0,v:0,g:2}, result:"Silence is its own kind of statement. It unsettles them more than a fight would have."}
+    {label:"Show up, but hold back and offer a truce instead.", align:{h:2,v:-1,g:2}, result:"They're surprised enough to accept. An uneasy alliance is born."},
+    {label:"Go all in and prove you're the stronger one.", align:{h:-2,v:4,g:0}, result:"You win. They don't forget it, and neither does the parking lot."},
+    {label:"Don't show up at all — let them wonder.", align:{h:0,v:-1,g:4}, result:"Silence is its own kind of statement. It unsettles them more than a fight would have."}
   ]
 };
 
@@ -387,21 +387,21 @@ const JUNIOR_BOSS = {
   rounds:[
     { text:"Round 1 — They come in fast, testing your reflexes.",
       choices:[
-        {label:"Meet force with precise, controlled force.", align:{h:2,v:0,g:0}, result:"You hold the line without losing your temper."},
-        {label:"Overwhelm them completely, no restraint.", align:{h:0,v:2,g:0}, result:"You hit harder than you needed to. It felt good anyway."},
-        {label:"Dodge and study their pattern instead of engaging.", align:{h:0,v:0,g:2}, result:"You learn their weakness before they learn yours."}
+        {label:"Meet force with precise, controlled force.", align:{h:5,v:-2,g:0}, result:"You hold the line without losing your temper."},
+        {label:"Overwhelm them completely, no restraint.", align:{h:-2,v:5,g:0}, result:"You hit harder than you needed to. It felt good anyway."},
+        {label:"Dodge and study their pattern instead of engaging.", align:{h:0,v:-2,g:5}, result:"You learn their weakness before they learn yours."}
       ]},
     { text:"Round 2 — The Recruiter offers you an opening to walk away, if you 'join properly.'",
       choices:[
-        {label:"Refuse and press the advantage to end this now.", align:{h:2,v:0,g:0}, result:"No deal. You push forward."},
-        {label:"Pretend to consider it, buying time to turn the tables.", align:{h:0,v:1,g:1}, result:"A convincing lie. They almost believe you."},
-        {label:"Actually consider it — the offer isn't nothing.", align:{h:0,v:2,g:0}, result:"Something in you leans toward yes. That scares you more than the fight does."}
+        {label:"Refuse and press the advantage to end this now.", align:{h:5,v:-2,g:0}, result:"No deal. You push forward."},
+        {label:"Pretend to consider it, buying time to turn the tables.", align:{h:-1,v:2,g:3}, result:"A convincing lie. They almost believe you."},
+        {label:"Actually consider it — the offer isn't nothing.", align:{h:-2,v:5,g:0}, result:"Something in you leans toward yes. That scares you more than the fight does."}
       ]},
     { text:"Round 3 — The Recruiter is down, one shot from finished.",
       choices:[
-        {label:"Stop. Make sure they're alive, then call it in.", align:{h:2,v:0,g:0}, result:"You choose restraint at the exact moment it's hardest."},
-        {label:"Finish it, no hesitation.", align:{h:0,v:2,g:0}, result:"You cross a line tonight you won't be able to un-cross."},
-        {label:"Leave them for their own crew to find. Not your problem anymore.", align:{h:0,v:0,g:2}, result:"You vanish before sirens arrive. No one saw you. No one ever does."}
+        {label:"Stop. Make sure they're alive, then call it in.", align:{h:6,v:-3,g:0}, result:"You choose restraint at the exact moment it's hardest."},
+        {label:"Finish it, no hesitation.", align:{h:-3,v:6,g:0}, result:"You cross a line tonight you won't be able to un-cross."},
+        {label:"Leave them for their own crew to find. Not your problem anymore.", align:{h:-1,v:-1,g:6}, result:"You vanish before sirens arrive. No one saw you. No one ever does."}
       ]}
   ]
 };
@@ -412,21 +412,21 @@ const FINAL_BOSS = {
   rounds:[
     { text:"Round 1 — Panic spreads through the gym as the lights die.",
       choices:[
-        {label:"Get your classmates out safely, first, before anything else.", align:{h:2,v:0,g:0}, result:"You clear the gym in under two minutes. Not one person hurt."},
-        {label:"Head straight for whoever's responsible.", align:{h:0,v:1,g:1}, result:"You leave the crowd behind. Some things matter more to you than a room full of strangers."},
-        {label:"Use the chaos as cover to handle this your way, unseen.", align:{h:0,v:0,g:2}, result:"No one will ever know you were even here tonight."}
+        {label:"Get your classmates out safely, first, before anything else.", align:{h:6,v:-3,g:0}, result:"You clear the gym in under two minutes. Not one person hurt."},
+        {label:"Head straight for whoever's responsible.", align:{h:-1,v:3,g:3}, result:"You leave the crowd behind. Some things matter more to you than a room full of strangers."},
+        {label:"Use the chaos as cover to handle this your way, unseen.", align:{h:-2,v:-1,g:6}, result:"No one will ever know you were even here tonight."}
       ]},
     { text:"Round 2 — You find them: the people you made enemies of this year, all in one place, waiting.",
       choices:[
-        {label:"Try, one last time, to end this without anyone getting hurt.", align:{h:2,v:0,g:0}, result:"It's not what they want to hear. You say it anyway."},
-        {label:"Give them exactly what they came looking for.", align:{h:0,v:2,g:0}, result:"There's no pretending anymore about what you're willing to do."},
-        {label:"Fight smart — disable, don't destroy.", align:{h:0,v:0,g:2}, result:"Efficient. Controlled. Exactly your style by now."}
+        {label:"Try, one last time, to end this without anyone getting hurt.", align:{h:6,v:-3,g:0}, result:"It's not what they want to hear. You say it anyway."},
+        {label:"Give them exactly what they came looking for.", align:{h:-3,v:6,g:0}, result:"There's no pretending anymore about what you're willing to do."},
+        {label:"Fight smart — disable, don't destroy.", align:{h:-1,v:-1,g:6}, result:"Efficient. Controlled. Exactly your style by now."}
       ]},
     { text:"Round 3 — The final confrontation, everything on the line, everyone watching by now.",
       choices:[
-        {label:"Save every person you can, whatever it costs you personally.", align:{h:3,v:0,g:0}, result:"By dawn, the story is already spreading: someone saved this town tonight."},
-        {label:"Make sure your name is the one people fear from now on.", align:{h:0,v:3,g:0}, result:"By dawn, the story is already spreading — and it isn't a kind one."},
-        {label:"Do what needs doing, then disappear before the sun comes up.", align:{h:0,v:0,g:3}, result:"By dawn, no one can even agree on what they saw, or who did it."}
+        {label:"Save every person you can, whatever it costs you personally.", align:{h:8,v:-4,g:0}, result:"By dawn, the story is already spreading: someone saved this town tonight."},
+        {label:"Make sure your name is the one people fear from now on.", align:{h:-4,v:8,g:0}, result:"By dawn, the story is already spreading — and it isn't a kind one."},
+        {label:"Do what needs doing, then disappear before the sun comes up.", align:{h:-2,v:-2,g:8}, result:"By dawn, no one can even agree on what they saw, or who did it."}
       ]}
   ]
 };
@@ -468,12 +468,6 @@ const AMBIENT_NPCS = {
   home:[ {name:"Dad", x:520, bark:"Dinner's at six. Wash up first."} ]
 };
 
-function buildSteps(pool, room, fightOrBoss){
-  const steps = pool.map(e=>({room, event:e}));
-  if(fightOrBoss) steps.push(fightOrBoss);
-  return steps;
-}
-
 const CHAPTERS = [
   { name:"Freshman Year", intro:"First year. New building, new faces, and a body that's starting to do things it shouldn't.",
     steps:[
@@ -512,15 +506,26 @@ const CHAPTERS = [
 
 let S = null;
 function newState(){
-  return { name:"", gender:"", locationId:"", hero:1, villain:1, vigilante:1, powers:[], log:[],
+  return { name:"", gender:"", locationId:"", hero:10, villain:10, vigilante:10, powers:[], log:[],
     appearance: defaultAppearance(), chapterIndex:0, stepIndex:0, day:1, room:"hallway", playerX:800,
     doneAmbient:{} };
 }
-function applyAlign(a){ S.hero+=a.h||0; S.villain+=a.v||0; S.vigilante+=a.g||0; }
-function pcts(){
-  const total = S.hero+S.villain+S.vigilante;
-  return { hero:Math.round(S.hero/total*100), villain:Math.round(S.villain/total*100), vigilante:Math.round(S.vigilante/total*100) };
+
+function applyAlign(a){
+  S.hero = Math.max(1, S.hero + (a.h||0));
+  S.villain = Math.max(1, S.villain + (a.v||0));
+  S.vigilante = Math.max(1, S.vigilante + (a.g||0));
 }
+
+function pcts(){
+  const total = S.hero + S.villain + S.vigilante;
+  return {
+    hero: Math.round((S.hero / total) * 100),
+    villain: Math.round((S.villain / total) * 100),
+    vigilante: Math.round((S.vigilante / total) * 100)
+  };
+}
+
 function meterBarHTML(){
   const p = pcts();
   return `<div class="meter-bar">
@@ -529,11 +534,12 @@ function meterBarHTML(){
     <div class="meter vigilante"><div class="pct">${p.vigilante}%</div><div class="name">Vigilante</div><div class="meter-track"><div class="meter-fill" style="width:${p.vigilante}%"></div></div></div>
   </div>`;
 }
+
 function currentChapter(){ return CHAPTERS[S.chapterIndex]; }
 function currentStep(){ const ch = currentChapter(); return ch.steps[S.stepIndex] || null; }
 
 /* ============================================================
-   2D HUMAN CHARACTER DRAWING
+   2D HUMAN CHARACTER DRAWING (FIXED TRANSLUCENCY & GRAPHICS)
    ============================================================ */
 
 function drawHuman(ctx, cx, groundY, scale, app, opts){
@@ -556,66 +562,98 @@ function drawHuman(ctx, cx, groundY, scale, app, opts){
   const legLen = 46*scale, torsoH = 46*scale, torsoW = 30*scale, headR = 15*scale, armLen = 40*scale;
   const hipY = -legLen, torsoTopY = hipY - torsoH, shoulderY = torsoTopY + 6*scale, headCY = torsoTopY - headR - 3*scale;
 
-  // shadow
-  ctx.fillStyle = "rgba(0,0,0,0.28)";
-  ctx.beginPath(); ctx.ellipse(0, 3*scale, 20*scale, 5*scale, 0, 0, Math.PI*2); ctx.fill();
+  // Ground shadow (Opaque blend layer)
+  ctx.fillStyle = "rgba(10, 10, 16, 0.4)";
+  ctx.beginPath();
+  ctx.ellipse(0, 3*scale, 20*scale, 5*scale, 0, 0, Math.PI*2);
+  ctx.fill();
 
-  // legs
   const legSwing = walking ? Math.sin(walkPhase)*0.5 : 0;
-  drawLimb(ctx, -8*scale, hipY, legLen, 9*scale, legSwing, "#2a2a34");
-  drawLimb(ctx, 8*scale, hipY, legLen, 9*scale, -legSwing, "#2a2a34");
 
-  // torso
+  // Opaque leg color replacing former translucent values
+  const legColor = "#1a1a24";
+  const bootColor = "#0d0d14";
+
+  // Back leg
+  drawLimb(ctx, -8*scale, hipY, legLen, 9*scale, legSwing, legColor);
+  // Back Boot
+  ctx.fillStyle = bootColor;
+  roundRect(ctx, -12*scale, hipY + legLen - 8*scale, 10*scale, 9*scale, 2*scale);
+  ctx.fill();
+
+  // Torso & Suit Design
   ctx.fillStyle = app.outfitPrimary;
   roundRect(ctx, -torsoW/2, torsoTopY, torsoW, torsoH, 8*scale);
   ctx.fill();
+
+  // Chest Armor/Design highlight
   ctx.fillStyle = app.outfitAccent;
-  roundRect(ctx, -torsoW/2+4*scale, torsoTopY+8*scale, torsoW-8*scale, 8*scale, 3*scale);
+  roundRect(ctx, -torsoW/2+4*scale, torsoTopY+6*scale, torsoW-8*scale, 10*scale, 3*scale);
+  ctx.fill();
+  
+  // Belt
+  ctx.fillStyle = "#111";
+  ctx.fillRect(-torsoW/2 - 1*scale, hipY - 6*scale, torsoW + 2*scale, 5*scale);
+  ctx.fillStyle = app.outfitAccent;
+  ctx.fillRect(-4*scale, hipY - 6.5*scale, 8*scale, 6*scale);
+
+  // Front leg
+  drawLimb(ctx, 8*scale, hipY, legLen, 9*scale, -legSwing, legColor);
+  // Front Boot
+  ctx.fillStyle = bootColor;
+  roundRect(ctx, 4*scale, hipY + legLen - 8*scale, 10*scale, 9*scale, 2*scale);
   ctx.fill();
 
-  // arms
+  // Arms
   let armSwingL = walking ? -Math.sin(walkPhase)*0.5 : 0;
   let armSwingR = walking ? Math.sin(walkPhase)*0.5 : 0;
   if(gesture==="heroic"){ armSwingL = -2.4; armSwingR = -0.3; }
   else if(gesture==="villainous"){ armSwingL = 0.9; armSwingR = -0.9; }
   else if(gesture==="stealthy"){ armSwingL = 0.5; armSwingR = 0.6; }
   else if(gesture==="talk"){ armSwingR = -0.6 + Math.sin(idlePhase*1.5)*0.15; }
+
   drawLimb(ctx, -14*scale, shoulderY, armLen, 8*scale, armSwingL, app.outfitPrimary);
   drawLimb(ctx, 14*scale, shoulderY, armLen, 8*scale, armSwingR, app.outfitPrimary);
 
-  // neck
+  // Neck
   ctx.fillStyle = app.skin;
   ctx.fillRect(-5*scale, torsoTopY-6*scale, 10*scale, 8*scale);
 
-  // head
+  // Head
   ctx.beginPath(); ctx.arc(0, headCY, headR, 0, Math.PI*2); ctx.fillStyle = app.skin; ctx.fill();
 
-  // face
+  // Face detailing (Eyes, Eyebrows & Mouth)
   ctx.fillStyle = "#1c1c26";
-  ctx.beginPath(); ctx.arc(5*scale, headCY-2*scale, 1.6*scale, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(5*scale, headCY-2*scale, 1.8*scale, 0, Math.PI*2); ctx.fill();
+  
+  // Eyebrow
+  ctx.strokeStyle = "#1c1c26"; ctx.lineWidth = 1.2*scale;
+  ctx.beginPath(); ctx.moveTo(2*scale, headCY-6*scale); ctx.lineTo(8*scale, headCY-5*scale); ctx.stroke();
+
   const mouthH = talking ? (Math.abs(Math.sin(talkPhase*9))*3.5*scale+1*scale) : 1.4*scale;
   ctx.fillStyle = "#7a3b3b";
-  roundRect(ctx, 3*scale, headCY+6*scale, 7*scale, mouthH, 2*scale); ctx.fill();
+  roundRect(ctx, 3*scale, headCY+5*scale, 7*scale, mouthH, 2*scale); ctx.fill();
 
-  // hair
+  // Enhanced Hair Rendering
   ctx.fillStyle = app.hairColor;
   if(app.hairStyle==="short"){
-    ctx.beginPath(); ctx.arc(0, headCY-2*scale, headR+1.5*scale, Math.PI*0.95, Math.PI*2.05); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, headCY-1*scale, headR+1.8*scale, Math.PI*0.85, Math.PI*2.15); ctx.fill();
   } else if(app.hairStyle==="long"){
-    ctx.beginPath(); ctx.arc(0, headCY-2*scale, headR+1.5*scale, Math.PI*0.95, Math.PI*2.05); ctx.fill();
-    roundRect(ctx, -headR-1*scale, headCY-2*scale, 6*scale, 30*scale, 4*scale); ctx.fill();
-    roundRect(ctx, headR-5*scale, headCY-2*scale, 6*scale, 30*scale, 4*scale); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, headCY-1*scale, headR+1.8*scale, Math.PI*0.85, Math.PI*2.15); ctx.fill();
+    roundRect(ctx, -headR-2*scale, headCY-2*scale, 7*scale, 32*scale, 4*scale); ctx.fill();
+    roundRect(ctx, headR-5*scale, headCY-2*scale, 7*scale, 32*scale, 4*scale); ctx.fill();
   } else if(app.hairStyle==="mohawk"){
     ctx.beginPath();
-    ctx.moveTo(-3*scale, headCY-headR);
-    ctx.lineTo(3*scale, headCY-headR);
-    ctx.lineTo(2*scale, headCY-headR-10*scale);
-    ctx.lineTo(-2*scale, headCY-headR-10*scale);
+    ctx.moveTo(-4*scale, headCY-headR);
+    ctx.lineTo(4*scale, headCY-headR);
+    ctx.lineTo(3*scale, headCY-headR-12*scale);
+    ctx.lineTo(-3*scale, headCY-headR-12*scale);
     ctx.closePath(); ctx.fill();
   }
 
   ctx.restore();
 }
+
 function drawLimb(ctx, x, y, len, w, angle, color){
   ctx.save();
   ctx.translate(x, y);
@@ -625,11 +663,13 @@ function drawLimb(ctx, x, y, len, w, angle, color){
   ctx.fill();
   ctx.restore();
 }
+
 function roundRect(ctx,x,y,w,h,r){
   ctx.beginPath();
   ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
   ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
 }
+
 function poseForChoice(c){
   const a = c.align||{};
   const h=a.h||0, v=a.v||0, g=a.g||0;
@@ -734,6 +774,7 @@ function renderCreator(){
   creatorTimer = setInterval(drawCreatorPreview, 90);
   validateCreator();
 }
+
 function buildSwatchRow(id, colors, active, onPick){
   const row = document.getElementById(id);
   row.innerHTML = colors.map(c=>`<div class="swatch ${c===active?'active':''}" style="background:${c}" data-c="${c}"></div>`).join("");
@@ -791,7 +832,7 @@ function objectiveText(){
    GAME SCREEN — walkable hallway + rooms
    ============================================================ */
 
-let gcanvas, gctx, keys={}, gRaf=null, camX=0, dpr=1;
+let gcanvas, gctx, keys={}, gRaf=null, camX=0, targetCamX=0, dpr=1;
 let player = { walkPhase:0, idlePhase:0, facing:1, moving:false };
 let ambientBarkTimer = null, activeBark = null, barkFade = 0;
 
@@ -877,8 +918,11 @@ function updateWorld(dt){
   player.idlePhase += dt*1.6;
 
   if(room().kind==="hallway"){
-    camX = Math.max(0, Math.min(room().width-900, S.playerX-450));
-  } else camX = 0;
+    targetCamX = Math.max(0, Math.min(room().width-900, S.playerX-450));
+  } else targetCamX = 0;
+
+  // Smooth Camera Easing
+  camX += (targetCamX - camX) * 0.12;
 
   updatePrompt();
 }
@@ -927,7 +971,7 @@ function handleInteractPress(){
 function enterRoom(roomId){
   if(roomId==="hallway"){
     S.playerX = HALLWAY_DOOR_X[S.room] || 800;
-    if(S.room==="home") S.day++;
+    if(S.room==="home" && S.chapterIndex>0) S.day++;
   } else {
     S.playerX = 140;
   }
@@ -954,13 +998,19 @@ function toScreen(x){ return x - camX; }
 
 function drawRoomBackground(ctx, kind){
   ctx.fillStyle = "#d8cfb4"; ctx.fillRect(0,0,900,520);
-  // floor
+  
+  // Dynamic Floor & Atmosphere Colors
   ctx.fillStyle = kind==="gym"?"#c98a4b":kind==="courtyard"?"#8fae6e":"#e3d9bd";
   ctx.fillRect(0,360,900,160);
   ctx.strokeStyle = "rgba(0,0,0,0.08)"; ctx.lineWidth=2;
   for(let x=-camX%80; x<900; x+=80){ ctx.beginPath(); ctx.moveTo(x,360); ctx.lineTo(x,520); ctx.stroke(); }
-  // wall band
-  ctx.fillStyle = kind==="courtyard" ? "#6ea0c9" : "#b7a980";
+  
+  // Wall band gradient & lights
+  const wallGrad = ctx.createLinearGradient(0,0,0,360);
+  if(kind==="courtyard"){ wallGrad.addColorStop(0,"#4e7fa8"); wallGrad.addColorStop(1,"#7ea1c9"); }
+  else { wallGrad.addColorStop(0,"#9e926d"); wallGrad.addColorStop(1,"#beaf86"); }
+  
+  ctx.fillStyle = wallGrad;
   ctx.fillRect(0,0,900,360);
   ctx.fillStyle = "rgba(0,0,0,0.06)";
   ctx.fillRect(0,340,900,20);
@@ -968,7 +1018,7 @@ function drawRoomBackground(ctx, kind){
   const width = room().width;
   if(kind==="hallway"){
     ctx.fillStyle = "rgba(0,0,0,0.05)";
-    for(let x=-camX; x<width-camX; x+=180){ roundRect(ctx,x+40,120,90,220,4); ctx.fill(); } // lockers
+    for(let x=-camX; x<width-camX; x+=180){ roundRect(ctx,x+40,120,90,220,4); ctx.fill(); }
     ctx.fillStyle = "#8f8365";
     for(let x=-camX; x<width-camX; x+=180){ ctx.fillRect(x+40,120,90,220); }
     for(let x=-camX; x<width-camX; x+=180){ for(let i=1;i<5;i++){ ctx.strokeStyle="rgba(0,0,0,0.15)"; ctx.beginPath(); ctx.moveTo(x+40+i*18,120); ctx.lineTo(x+40+i*18,340); ctx.stroke(); } }
@@ -1048,9 +1098,7 @@ function drawAmbientNpcs(ctx){
   (AMBIENT_NPCS[S.room]||[]).forEach(n=>{
     const sx = toScreen(n.x);
     if(sx<-40||sx>940) return;
-    ctx.save(); ctx.globalAlpha = 0.8;
     drawHuman(ctx, sx, 410, 2.6, npcAppearance(n.name), {facing:-1, idlePhase:performance.now()/700, gesture:"idle"});
-    ctx.restore();
     ctx.fillStyle="rgba(11,11,18,0.7)"; ctx.font="600 10px Oswald, sans-serif"; ctx.textAlign="center";
     ctx.fillText(n.name, sx, 250);
   });
@@ -1093,7 +1141,6 @@ function drawBarkBubble(ctx){
   ctx.globalAlpha = 1;
 }
 
-// stable per-name NPC look, cached
 const NPC_LOOKS = {};
 function npcAppearance(name){
   if(!NPC_LOOKS[name]){
