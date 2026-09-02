@@ -89,8 +89,34 @@
   .loc-card .ldesc{font-size:12.5px; margin-top:3px; opacity:0.75; line-height:1.35;}
   .hp-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
   .hp-label{font-family:'Oswald'; font-size:11px; letter-spacing:1px; text-transform:uppercase; width:90px; flex-shrink:0;}
-  .hp-track{flex:1; height:13px; background:#d9d2bf; border:2px solid var(--outline); border-radius:8px; overflow:hidden;}
-  .hp-fill{height:100%; background:var(--villain); transition:width .4s ease;}
+  .hp-track{flex:1; height:13px; background:#d9d2bf; border:2px solid var(--outline); border-radius:8px; overflow:hidden; position:relative;}
+  .hp-fill{height:100%; background:var(--villain); transition:width .5s cubic-bezier(.3,.8,.4,1);}
+  .hp-fill.player{background:var(--hero);}
+  .hp-fill.boss{background:var(--villain);}
+
+  /* ---- boss-fight hit feedback: real shake, flash, and damage numbers ---- */
+  @keyframes cutShake{
+    0%{transform:translate(0,0);} 15%{transform:translate(-7px,3px) rotate(-0.6deg);}
+    30%{transform:translate(6px,-3px) rotate(0.5deg);} 45%{transform:translate(-5px,2px);}
+    60%{transform:translate(4px,-2px);} 75%{transform:translate(-2px,1px);} 100%{transform:translate(0,0);}
+  }
+  .cut-shake{ animation:cutShake .4s ease; }
+  .hit-flash{
+    position:absolute; inset:0; background:rgba(193,39,45,0.32); pointer-events:none;
+    border-radius:4px; animation:hitFlashAnim .45s ease forwards; z-index:5;
+  }
+  @keyframes hitFlashAnim{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  .dmg-float{
+    position:absolute; top:-4px; left:38%; font-family:'Bangers'; font-size:19px; letter-spacing:0.5px;
+    pointer-events:none; text-shadow:1px 1px 0 rgba(0,0,0,0.4); animation:dmgFloatAnim 0.95s ease forwards; z-index:6;
+  }
+  @keyframes dmgFloatAnim{
+    0%{ opacity:0; transform:translateY(2px) scale(0.8); }
+    18%{ opacity:1; transform:translateY(-3px) scale(1.15); }
+    100%{ opacity:0; transform:translateY(-34px) scale(1); }
+  }
+  .dmg-float.boss{ color:#e8757c; }
+  .dmg-float.player{ color:#7ea1e8; }
   .powerlist{list-style:none; padding:0; margin:0 0 14px;}
   .powerlist li{background:var(--paper-dim); border:2px solid var(--outline); border-radius:6px; padding:10px 12px; margin-bottom:8px;}
   .powerlist .pname{display:block; font-family:'Oswald'; font-weight:700; letter-spacing:0.5px; font-size:14px; line-height:1.35;}
@@ -107,12 +133,39 @@
 
   .meter-bar{display:flex; gap:6px; margin-bottom:8px; background:rgba(242,237,225,0.08); border:2px solid rgba(242,237,225,0.18); border-radius:10px; padding:8px 10px;}
   .meter{flex:1; text-align:center;}
-  .meter .pct{font-family:'Bangers'; font-size:19px; color:var(--paper); line-height:1;}
+  .meter .pct{font-family:'Bangers'; font-size:19px; color:var(--paper); line-height:1; transition:color .15s ease;}
   .meter .name{font-family:'Oswald'; font-size:9px; letter-spacing:1.2px; color:rgba(242,237,225,0.65); text-transform:uppercase; margin-top:1px;}
   .meter.hero .pct{color:#7ea1e8;} .meter.villain .pct{color:#e8757c;} .meter.vigilante .pct{color:#b79fe0;}
   .meter-track{height:6px; border-radius:4px; background:rgba(0,0,0,0.4); margin-top:5px; overflow:hidden;}
   .meter-fill{height:100%; border-radius:4px; transition:width 0.4s ease-out;}
   .meter.hero .meter-fill{background:var(--hero);} .meter.villain .meter-fill{background:var(--villain);} .meter.vigilante .meter-fill{background:var(--vigilante);}
+
+  /* ---- persistent live meter bar (always on top, even over cutscenes) ---- */
+  #meterBarFixed{
+    position:fixed; top:0; left:0; right:0; z-index:300;
+    display:none; justify-content:center; padding:8px 10px 6px; background:rgba(11,11,18,0.92);
+    border-bottom:2px solid rgba(242,237,225,0.18); backdrop-filter:blur(2px);
+  }
+  #meterBarInnerWrap{ width:100%; max-width:920px; position:relative; }
+  #meterBarFixed .meter-bar{ margin-bottom:0; }
+  #meterFloaters{ position:absolute; left:0; right:0; top:100%; height:0; pointer-events:none; }
+  .meter-float{
+    position:absolute; top:2px; font-family:'Bangers'; font-size:13px; letter-spacing:0.5px;
+    padding:2px 8px; border-radius:12px; background:rgba(11,11,18,0.85); white-space:nowrap;
+    animation:meterFloatUp 1.4s ease forwards;
+  }
+  .meter-float.hero{ color:#7ea1e8; left:16%; }
+  .meter-float.villain{ color:#e8757c; left:50%; margin-left:-40px; }
+  .meter-float.vigilante{ color:#b79fe0; right:16%; }
+  @keyframes meterFloatUp{
+    0%{ opacity:0; transform:translateY(0) scale(0.85); }
+    15%{ opacity:1; transform:translateY(2px) scale(1.05); }
+    30%{ transform:translateY(0) scale(1); }
+    75%{ opacity:1; }
+    100%{ opacity:0; transform:translateY(-22px) scale(0.95); }
+  }
+  body.has-meter-bar{ padding-top:66px; }
+  @media(max-width:640px){ #meterBarFixed{ padding:6px 6px 5px; } .meter .pct{ font-size:16px; } body.has-meter-bar{ padding-top:64px; } }
 
   /* ---- character creator ---- */
   .creator-wrap{display:flex; gap:20px; align-items:flex-start;}
@@ -145,10 +198,6 @@
   #roomLabel{
     position:absolute; top:8px; left:8px; font-family:'Bangers'; font-size:14px; letter-spacing:1px;
     background:rgba(11,11,18,0.72); color:var(--paper); padding:4px 10px; border-radius:5px; pointer-events:none;
-  }
-  #dayLabel{
-    position:absolute; top:8px; right:8px; font-family:'Oswald'; font-size:10.5px; letter-spacing:1px;
-    background:rgba(11,11,18,0.72); color:rgba(242,237,225,0.8); padding:4px 10px; border-radius:5px; pointer-events:none; text-transform:uppercase;
   }
   #promptRow{ display:flex; justify-content:center; margin-top:10px; min-height:44px; }
   #promptBtn{
@@ -204,31 +253,35 @@ function defaultAppearance(){
    STORY DATA — powers, locations, chapters, dialogue
    ============================================================ */
 
+/* Each power carries a "flavor" — which of the three traits it narratively leans toward.
+   The origin power (see ORIGIN_POWER_BY_LOCATION below) is chosen deterministically to match
+   the specific manifestation text; pickPowerByFlavor() handles later power grants, weighting
+   toward whichever combat action triggered them. */
 const POWERS = {
-  hydro:{name:"Hydrokinesis", desc:"Command and shape water at will.", loc:"coastal"},
-  storm:{name:"Storm Calling", desc:"Summon wind, rain, and lightning.", loc:"coastal"},
-  tidal:{name:"Tidal Strength", desc:"Physical power that surges like the tide.", loc:"coastal"},
-  aquavoice:{name:"Aquatic Resonance", desc:"Communicate with and command sea life.", loc:"coastal"},
-  geokin:{name:"Stoneform", desc:"Harden skin to living granite on command.", loc:"mountain"},
-  cryo:{name:"Cryokinesis", desc:"Generate and control ice and frost.", loc:"mountain"},
-  windwalk:{name:"Windwalking", desc:"Ride mountain thermals in true flight.", loc:"mountain"},
-  stamina:{name:"Iron Lungs", desc:"Superhuman endurance and stamina.", loc:"mountain"},
-  solar:{name:"Solar Core", desc:"Absorb and release stored sunlight as energy.", loc:"desert"},
-  heat:{name:"Pyrokinesis", desc:"Generate and control intense heat.", loc:"desert"},
-  sand:{name:"Sandforge", desc:"Shape and harden sand into weapons or armor.", loc:"desert"},
-  mirage:{name:"Mirage Weaving", desc:"Bend light to cast convincing illusions.", loc:"desert"},
-  flora:{name:"Verdant Call", desc:"Grow and command plant life instantly.", loc:"forest"},
-  beastspeak:{name:"Beast-Speak", desc:"Communicate with and rally wild animals.", loc:"forest"},
-  regen:{name:"Regeneration", desc:"Heal from wounds at an accelerated rate.", loc:"forest"},
-  camo:{name:"Adaptive Camouflage", desc:"Blend into any surrounding instantly.", loc:"forest"},
-  techno:{name:"Technopathy", desc:"Interface with and control electronics by thought.", loc:"urban"},
-  superstr:{name:"Augmented Strength", desc:"Raw physical power far past human limits.", loc:"urban"},
-  metal:{name:"Ferrokinesis", desc:"Bend and shape metal like clay.", loc:"urban"},
-  construct:{name:"Hard-Light Constructs", desc:"Build solid tools and shields from raw energy.", loc:"urban"},
-  telekin:{name:"Telekinesis", desc:"Move objects and people with pure will.", loc:"universal"},
-  speed:{name:"Velocity", desc:"Move, think, and react at superhuman speed.", loc:"universal"},
-  telepath:{name:"Telepathy", desc:"Read surface thoughts and project your own.", loc:"universal"},
-  invuln:{name:"Density Shift", desc:"Turn near-invulnerable at will.", loc:"universal"}
+  hydro:{name:"Hydrokinesis", desc:"Command and shape water at will.", loc:"coastal", flavor:"hero"},
+  storm:{name:"Storm Calling", desc:"Summon wind, rain, and lightning.", loc:"coastal", flavor:"villain"},
+  tidal:{name:"Tidal Strength", desc:"Physical power that surges like the tide.", loc:"coastal", flavor:"vigilante"},
+  aquavoice:{name:"Aquatic Resonance", desc:"Communicate with and command sea life.", loc:"coastal", flavor:"hero"},
+  geokin:{name:"Stoneform", desc:"Harden skin to living granite on command.", loc:"mountain", flavor:"hero"},
+  cryo:{name:"Cryokinesis", desc:"Generate and control ice and frost.", loc:"mountain", flavor:"villain"},
+  windwalk:{name:"Windwalking", desc:"Ride mountain thermals in true flight.", loc:"mountain", flavor:"vigilante"},
+  stamina:{name:"Iron Lungs", desc:"Superhuman endurance and stamina.", loc:"mountain", flavor:"hero"},
+  solar:{name:"Solar Core", desc:"Absorb and release stored sunlight as energy.", loc:"desert", flavor:"hero"},
+  heat:{name:"Pyrokinesis", desc:"Generate and control intense heat.", loc:"desert", flavor:"villain"},
+  sand:{name:"Sandforge", desc:"Shape and harden sand into weapons or armor.", loc:"desert", flavor:"villain"},
+  mirage:{name:"Mirage Weaving", desc:"Bend light to cast convincing illusions.", loc:"desert", flavor:"vigilante"},
+  flora:{name:"Verdant Call", desc:"Grow and command plant life instantly.", loc:"forest", flavor:"hero"},
+  beastspeak:{name:"Beast-Speak", desc:"Communicate with and rally wild animals.", loc:"forest", flavor:"hero"},
+  regen:{name:"Regeneration", desc:"Heal from wounds at an accelerated rate.", loc:"forest", flavor:"hero"},
+  camo:{name:"Adaptive Camouflage", desc:"Blend into any surrounding instantly.", loc:"forest", flavor:"vigilante"},
+  techno:{name:"Technopathy", desc:"Interface with and control electronics by thought.", loc:"urban", flavor:"vigilante"},
+  superstr:{name:"Augmented Strength", desc:"Raw physical power far past human limits.", loc:"urban", flavor:"villain"},
+  metal:{name:"Ferrokinesis", desc:"Bend and shape metal like clay.", loc:"urban", flavor:"villain"},
+  construct:{name:"Hard-Light Constructs", desc:"Build solid tools and shields from raw energy.", loc:"urban", flavor:"hero"},
+  telekin:{name:"Telekinesis", desc:"Move objects and people with pure will.", loc:"universal", flavor:"vigilante"},
+  speed:{name:"Velocity", desc:"Move, think, and react at superhuman speed.", loc:"universal", flavor:"hero"},
+  telepath:{name:"Telepathy", desc:"Read surface thoughts and project your own.", loc:"universal", flavor:"vigilante"},
+  invuln:{name:"Density Shift", desc:"Turn near-invulnerable at will.", loc:"universal", flavor:"hero"}
 };
 
 const LOCATIONS = [
@@ -239,14 +292,25 @@ const LOCATIONS = [
   {id:"urban", name:"Ironvale High", tagline:"A dense, humming industrial sprawl.", pool:["techno","superstr","metal","construct"]}
 ];
 
-function rollPower(locId, exclude){
+/* Deterministic on purpose: the origin event's flavor text describes a very specific
+   manifestation per town (water bending to your hand in the coastal script, frost at your
+   feet in the mountain one, etc.) — so the power you actually wake up with has to be the one
+   that matches what was just described, not a random draw from the town's whole pool. */
+const ORIGIN_POWER_BY_LOCATION = { coastal:"hydro", mountain:"cryo", desert:"heat", forest:"flora", urban:"techno" };
+
+/* For power grants that AREN'T tied to specific origin-text (e.g. the mid-story "power surge"
+   during the Junior Year boss fight), the power still isn't pure luck — it's weighted toward
+   whichever combat action you just took: an aggressive villainous action surges you toward an
+   aggressive power, a controlled heroic one toward a controlled power, and so on. */
+function pickPowerByFlavor(locId, flavor, exclude){
   exclude = exclude || [];
   const loc = LOCATIONS.find(l=>l.id===locId);
-  const useUniversal = Math.random() < 0.2;
+  const useUniversal = Math.random() < 0.15;
   let pool = useUniversal ? Object.keys(POWERS).filter(k=>POWERS[k].loc==="universal") : loc.pool.slice();
   pool = pool.filter(k=>!exclude.includes(k));
-  if(pool.length===0) pool = Object.keys(POWERS).filter(k=>!exclude.includes(k));
-  return pool[Math.floor(Math.random()*pool.length)];
+  let matching = pool.filter(k=>POWERS[k].flavor===flavor);
+  if(matching.length===0) matching = pool.length ? pool : Object.keys(POWERS).filter(k=>!exclude.includes(k));
+  return matching[Math.floor(Math.random()*matching.length)];
 }
 
 const ORIGIN_MANIFESTATIONS = {
@@ -262,11 +326,11 @@ const FRESHMAN_POOL = [
   { tag:"Locker Bully", npcName:"A Junior", grantsPower:false,
     text:"First week. A junior corners a smaller freshman by the lockers, laughing while their books scatter across the floor.",
     choices:[
-      {label:"Step in and stop it, in front of everyone.", align:{h:2,v:-1,g:0}, result:"You plant yourself between them. The junior backs off, muttering. The freshman doesn't forget it."},
-      {label:"Wait until they're alone, then make the junior regret it privately.", align:{h:0,v:-1,g:3}, result:"Later, in an empty hallway, you make sure the junior understands this doesn't happen twice. No one sees it. No one needs to."},
-      {label:"Film it for laughs and post it before lunch.", align:{h:-1,v:3,g:0}, result:"The video gets three hundred views by second period. You feel something curdle in your stomach — and ignore it."}
+      {label:"Step in and stop it, in front of everyone.", align:{h:2,v:-1,g:0}, sideScene:"freshmanShoutout", result:"You plant yourself between them. The junior backs off, muttering. The freshman doesn't forget it."},
+      {label:"Wait until they're alone, then make the junior regret it privately.", align:{h:0,v:-1,g:3}, sideScene:"juniorPayback", result:"Later, in an empty hallway, you make sure the junior understands this doesn't happen twice. No one sees it. No one needs to."},
+      {label:"Film it for laughs and post it before lunch.", align:{h:-1,v:3,g:0}, sideScene:"videoBacklash", result:"The video gets three hundred views by second period. You feel something curdle in your stomach — and ignore it."}
     ]},
-  { tag:"Gym Class Accident", npcName:"Coach Reyes", grantsPower:true,
+  { tag:"Gym Class Accident", npcName:"Coach Reyes", grantsPower:true, originPower:true,
     text:"During a routine drill, your body does something it shouldn't — {{ORIGIN}}. Something in you has woken up.",
     choices:[
       {label:"Panic, but immediately try to help the classmate nearest you.", align:{h:3,v:-1,g:0}, result:"You mask the moment by 'catching' a falling teammate with strength you didn't have yesterday. Only you know what really happened."},
@@ -277,7 +341,7 @@ const FRESHMAN_POOL = [
     text:"You overhear two teachers in the hallway, voices low: a testing scandal, grades quietly altered for a coach's star player.",
     choices:[
       {label:"Report it to the principal's office that afternoon.", align:{h:2,v:-1,g:0}, result:"It takes three weeks, but an investigation opens. You're not thanked. You didn't do it to be thanked."},
-      {label:"Approach the teacher directly and offer to keep quiet — for a price.", align:{h:-1,v:2,g:0}, result:"The favor you're owed will come due eventually. You already know you'll collect."},
+      {label:"Approach the teacher directly and offer to keep quiet — for a price.", align:{h:-1,v:2,g:0}, sideScene:"teacherFavor", result:"The favor you're owed will come due eventually. You already know you'll collect."},
       {label:"Dig quietly on your own until you have real proof, then leak it anonymously.", align:{h:0,v:-1,g:2}, result:"Two weeks of careful, unseen work. When the story breaks, no one traces it back to you."}
     ]},
   { tag:"Group Project", npcName:"Deja", grantsPower:false,
@@ -287,7 +351,7 @@ const FRESHMAN_POOL = [
       {label:"Let the group vote them off — it's not your problem.", align:{h:-1,v:2,g:0}, result:"The grade is safe. Your partner isn't. You tell yourself it's just how the world works."},
       {label:"Cut a deal: you'll cover for them if they owe you later.", align:{h:0,v:1,g:1}, result:"An IOU, freshman year. You're already thinking in favors and leverage."}
     ]},
-  { tag:"Break-In Alert", npcName:"Your Phone", grantsPower:false,
+  { tag:"Break-In Alert", npcName:"Phone Alert", npcType:"phone", grantsPower:false,
     text:"A news alert lights up half the phones in class: a break-in three blocks from school, still in progress.",
     choices:[
       {label:"Text the tip to police and stay in class.", align:{h:1,v:0,g:0}, result:"You did the responsible thing. It doesn't feel like enough."},
@@ -301,14 +365,14 @@ const SOPHOMORE_POOL = [
     text:"You find hard proof the student council election was rigged — ballots swapped by the winning candidate's friend.",
     choices:[
       {label:"Expose it publicly at the next assembly.", align:{h:4,v:-2,g:0}, result:"The fallout is loud and messy. The right person loses their title. You make an enemy."},
-      {label:"Use it to install yourself as the 'fair' replacement candidate.", align:{h:-2,v:4,g:0}, result:"You didn't need powers for this one — just leverage. It works perfectly."},
+      {label:"Use it to install yourself as the 'fair' replacement candidate.", align:{h:-2,v:4,g:0}, sideScene:"electionFallout", result:"You didn't need powers for this one — just leverage. It works perfectly."},
       {label:"Confront them privately and force a quiet resignation.", align:{h:0,v:-1,g:4}, result:"No assembly, no headlines. Just a resignation letter and a secret only two people know."}
     ]},
   { tag:"The Retired One", npcName:"Mr. Okafor", grantsPower:false,
     text:"Your history teacher watches you a beat too long after your hand flares warm mid-lecture. After class: 'I used to do what you're starting to do. I can help — or pretend I never noticed.'",
     choices:[
       {label:"Ask them to train you to protect people, properly.", align:{h:3,v:-1,g:0}, result:"Weekly sessions begin. They push you hard toward restraint and responsibility."},
-      {label:"Ask what they know about the money that used to come with powers like these.", align:{h:-1,v:3,g:0}, result:"Their face changes. They teach you anyway — techniques with sharper edges than they intended."},
+      {label:"Ask what they know about the money that used to come with powers like these.", align:{h:-1,v:3,g:0}, sideScene:"mentorMoney", result:"Their face changes. They teach you anyway — techniques with sharper edges than they intended."},
       {label:"Say nothing. Learn what you can on your own.", align:{h:0,v:-1,g:3}, result:"They respect the silence more than they'd admit. You're on your own, and that's how you like it."}
     ]},
   { tag:"Homecoming Rumor", npcName:"Priya", grantsPower:false,
@@ -316,7 +380,7 @@ const SOPHOMORE_POOL = [
     choices:[
       {label:"Warn the classmate and help them get ahead of it.", align:{h:2,v:-1,g:0}, result:"The night is saved. They never learn how close it came to ruin."},
       {label:"Let it play out. Drama is drama.", align:{h:-1,v:2,g:0}, result:"You watch from the sidelines. It's not your fight — you tell yourself that a lot lately."},
-      {label:"Quietly make sure the rumor-starter's night goes just as badly.", align:{h:-1,v:1,g:2}, result:"Petty, effective, untraceable. You're getting good at this."}
+      {label:"Quietly make sure the rumor-starter's night goes just as badly.", align:{h:-1,v:1,g:2}, sideScene:"rumorRevenge", result:"Petty, effective, untraceable. You're getting good at this."}
     ]},
   { tag:"Family Trouble", npcName:"Mom", grantsPower:false,
     text:"A scammer has been draining your family's savings for months, posing as a utility company. Your parents don't know yet — you found the voicemails on the kitchen counter.",
@@ -333,12 +397,12 @@ const JUNIOR_POOL = [
     choices:[
       {label:"Turn it in to the school resource officer.", align:{h:3,v:-1,g:0}, result:"You're briefly a suspect until the real story comes out. Doing right isn't always clean."},
       {label:"Find out who it belongs to and deal with them directly, off school grounds.", align:{h:0,v:-1,g:3}, result:"A quiet, one-on-one conversation ends the problem before it starts."},
-      {label:"Keep it. It might be useful.", align:{h:-1,v:3,g:0}, result:"You tell yourself it's just insurance. It doesn't feel like insurance."}
+      {label:"Keep it. It might be useful.", align:{h:-1,v:3,g:0}, sideScene:"contrabandFollowup", result:"You tell yourself it's just insurance. It doesn't feel like insurance."}
     ]},
   { tag:"The Blackout", npcName:"A Passerby", grantsPower:false,
     text:"A grid failure knocks out six blocks near the school, hospital included, backup generators failing one by one.",
     choices:[
-      {label:"Rush to the hospital and use your powers openly to keep things running.", align:{h:4,v:-2,g:0}, result:"You're seen. Really seen, for the first time. The city starts asking who you are."},
+      {label:"Rush to the hospital and use your powers openly to keep things running.", align:{h:4,v:-2,g:0}, sideScene:"cityNoticed", result:"You're seen. Really seen, for the first time. The city starts asking who you are."},
       {label:"Fix it quietly from the shadows, then disappear before anyone can thank you.", align:{h:0,v:-1,g:4}, result:"The lights come back on. No one knows how. You prefer it that way."},
       {label:"Let the chaos run a little longer — it's useful cover for something else you need.", align:{h:-2,v:4,g:0}, result:"You get what you came for. People got hurt in the dark you could have shortened."}
     ]}
@@ -349,17 +413,127 @@ const SENIOR_POOL = [
     text:"A slick, well-funded stranger finds you after school. 'I represent people who could use someone with your talents. Good pay. Better toys. Fewer rules.'",
     choices:[
       {label:"Turn them down flat and report the encounter to your mentor.", align:{h:4,v:-2,g:0}, result:"They leave a card anyway. You burn it."},
-      {label:"Take the meeting. Just to see what 'fewer rules' actually means.", align:{h:-2,v:4,g:0}, result:"It means exactly what you think. You're in deeper than you meant to be."},
+      {label:"Take the meeting. Just to see what 'fewer rules' actually means.", align:{h:-2,v:4,g:0}, sideScene:"recruiterMeeting", result:"It means exactly what you think. You're in deeper than you meant to be."},
       {label:"String them along for information, no commitment.", align:{h:0,v:-1,g:4}, result:"You walk away with names and a number no one else has. They don't know they've been used."}
     ]},
-  { tag:"Missing Prom Funds", npcName:"Ms. Alden", grantsPower:false,
-    text:"Prom funds have gone missing from the committee's account, three days before the dance.",
+  { tag:"Missing Graduation Funds", npcName:"Ms. Alden", grantsPower:false,
+    text:"Graduation night funds have gone missing from the committee's account, three days before the ceremony.",
     choices:[
-      {label:"Cover the shortfall out of your own pocket, quietly.", align:{h:3,v:-1,g:0}, result:"Prom happens. No one ever learns who saved it."},
-      {label:"Track the money down and make the thief return every cent — with interest.", align:{h:-1,v:2,g:2}, result:"The money comes back. So does a reputation for not being someone to steal from."},
+      {label:"Cover the shortfall out of your own pocket, quietly.", align:{h:3,v:-1,g:0}, result:"Graduation night happens on schedule. No one ever learns who saved it."},
+      {label:"Track the money down and make the thief return every cent — with interest.", align:{h:-1,v:2,g:2}, sideScene:"fundsAudit", result:"The money comes back. So does a reputation for not being someone to steal from."},
       {label:"Skim a little off the recovered funds for yourself before handing back the rest.", align:{h:-1,v:3,g:0}, result:"No one counts closely enough to notice. You do."}
     ]}
 ];
+
+/* ============================================================
+   SIDE SCENES — bonus follow-ups triggered by specific choices
+   ============================================================
+   These aren't main-chapter steps: they don't occupy a room, don't need to be walked to,
+   and don't show up in every playthrough. A choice tagged with `sideScene: "key"` plays the
+   matching scene here as a bonus beat immediately after its own result screen, before the
+   story moves on — a direct consequence of that specific decision, not something everyone
+   sees. */
+const SIDE_SCENES = {
+  juniorPayback:{
+    tag:"Word Gets Around", npcName:"A Junior",
+    text:"The junior finds you a week later — not looking for trouble this time, just to talk. 'Whatever you did, I get it. I'm not gonna be a problem.'",
+    choices:[
+      {label:"Accept it and let it go.", align:{h:1,v:0,g:0}, result:"You nod. That's the end of it, for now."},
+      {label:"Make it clear this isn't over.", align:{h:0,v:2,g:0}, result:"Their face changes. Message received, loud and clear."},
+      {label:"Say nothing and just walk away.", align:{h:0,v:0,g:2}, result:"You don't need to say anything. They already understand."}
+    ]
+  },
+  electionFallout:{
+    tag:"Campaign Fallout", npcName:"Marcus",
+    text:"Word spreads that you're running now. Marcus corners you by the lockers, half-impressed, half-suspicious. 'Since when do you care about student council?'",
+    choices:[
+      {label:"Tell him the truth — you saw an opening and took it.", align:{h:-1,v:2,g:0}, result:"He doesn't look surprised. That's almost worse."},
+      {label:"Spin a story about wanting to fix things.", align:{h:0,v:2,g:1}, result:"He half-believes you. It's enough for now."},
+      {label:"Tell him to mind his own business.", align:{h:-1,v:1,g:1}, result:"He backs off. You've made yourself a little harder to read."}
+    ]
+  },
+  contrabandFollowup:{
+    tag:"Somebody Noticed", npcName:"Coach Reyes",
+    text:"A few days later, Coach Reyes pulls you aside. 'Something's missing from that locker. You wouldn't know anything about that, would you?'",
+    choices:[
+      {label:"Lie without hesitation.", align:{h:-1,v:2,g:0}, result:"He doesn't believe you. He also doesn't push it."},
+      {label:"Hand it over, no explanation.", align:{h:1,v:-1,g:0}, result:"He takes it and asks no questions. You're both relieved."},
+      {label:"Deflect and change the subject.", align:{h:0,v:0,g:2}, result:"It works. You're getting good at this."}
+    ]
+  },
+  recruiterMeeting:{
+    tag:"The Meeting", npcName:"A Stranger",
+    text:"You show up where they said. No cameras, no crowd — just the stranger, a folder, and a very specific kind of silence.",
+    choices:[
+      {label:"Ask what exactly they'd want from you.", align:{h:0,v:2,g:1}, result:"They answer plainly. It's worse than you expected, and clearer too."},
+      {label:"Say nothing, just listen.", align:{h:0,v:0,g:3}, result:"You leave knowing more than they meant to tell you."},
+      {label:"Walk out before they finish talking.", align:{h:2,v:0,g:0}, result:"You don't need to hear the rest. Some doors close themselves."}
+    ]
+  },
+  fundsAudit:{
+    tag:"Where It Went", npcName:"Ms. Alden",
+    text:"Ms. Alden calls you into the office once the graduation funds are recovered. 'The committee wants to know how you found it so fast. So do I, honestly.'",
+    choices:[
+      {label:"Tell her exactly how you did it.", align:{h:1,v:0,g:0}, result:"She writes it down like she half-expected the answer."},
+      {label:"Keep the method to yourself — results speak for themselves.", align:{h:0,v:1,g:2}, result:"She lets it go. Some things are better left unasked."},
+      {label:"Let her assume it was pure luck.", align:{h:0,v:0,g:2}, result:"She doesn't quite buy it. She doesn't push either."}
+    ]
+  },
+  freshmanShoutout:{
+    tag:"Word Travels", npcName:"A Freshman",
+    text:"The freshman you stood up for finds you at lunch, a little nervous. 'I never said thank you properly. That was — that meant a lot.'",
+    choices:[
+      {label:"Tell them it was nothing, anyone would've done it.", align:{h:2,v:0,g:0}, result:"They don't believe you, but they appreciate the modesty."},
+      {label:"Accept the thanks and offer to keep an eye out for them.", align:{h:3,v:-1,g:0}, result:"A small, quiet alliance starts, right there at the lunch table."},
+      {label:"Brush past it — you don't need the attention.", align:{h:1,v:0,g:1}, result:"They nod, a little disappointed, and let you go."}
+    ]
+  },
+  videoBacklash:{
+    tag:"It Didn't Age Well", npcName:"Kayla",
+    text:"By the next morning the video's gotten ugly attention — including from people who know the freshman personally. Kayla tracks you down. 'You know that was messed up, right?'",
+    choices:[
+      {label:"Take it down and actually apologize.", align:{h:2,v:-1,g:0}, result:"It doesn't undo it, but it's more than most people bother to do."},
+      {label:"Leave it up. It's not that deep.", align:{h:-1,v:2,g:0}, result:"Kayla doesn't say anything else. She just looks at you differently now."},
+      {label:"Delete it quietly and never mention it again.", align:{h:0,v:0,g:2}, result:"No apology, no confrontation. It just disappears, like you do."}
+    ]
+  },
+  teacherFavor:{
+    tag:"Collecting", npcName:"Ms. Alden",
+    text:"Weeks later, the teacher finds you between classes, voice low. 'I believe you're owed a favor from me. I'd like to keep it that way, if it's all the same to you.'",
+    choices:[
+      {label:"Tell her you'll collect when you actually need it.", align:{h:-1,v:1,g:1}, result:"She doesn't love the uncertainty. She agrees anyway."},
+      {label:"Cash it in immediately for something small.", align:{h:0,v:2,g:0}, result:"Petty, but effective. The debt's cleared either way."},
+      {label:"Tell her the favor's forgotten — you don't need leverage over people.", align:{h:2,v:-1,g:0}, result:"She looks almost sorry to hear it. Almost."}
+    ]
+  },
+  mentorMoney:{
+    tag:"Old Habits", npcName:"Mr. Okafor",
+    text:"A few sessions later, Mr. Okafor hesitates before a drill. 'I said I'd teach you what I know. I didn't say all of it was proud of. Ask me again if you still want it.'",
+    choices:[
+      {label:"Tell him you only want the parts that keep people safe.", align:{h:3,v:-1,g:0}, result:"Relief crosses his face. That's the answer he was hoping for."},
+      {label:"Tell him you want all of it — every technique, no exceptions.", align:{h:-1,v:3,g:0}, result:"He teaches you anyway, slower now, watching you more closely."},
+      {label:"Say nothing and just wait for him to keep going.", align:{h:0,v:0,g:2}, result:"He reads the silence as a yes and continues."}
+    ]
+  },
+  rumorRevenge:{
+    tag:"Karma, Allegedly", npcName:"Priya",
+    text:"The rumor-starter's own homecoming goes sideways, right on schedule. Priya finds you after, eyes narrowed. 'That was you, wasn't it.'",
+    choices:[
+      {label:"Deny it completely.", align:{h:0,v:1,g:1}, result:"She doesn't believe you for a second. She lets it go anyway."},
+      {label:"Admit it — they had it coming.", align:{h:-1,v:2,g:0}, result:"Priya doesn't look thrilled, but she doesn't argue either."},
+      {label:"Change the subject entirely.", align:{h:0,v:0,g:2}, result:"She takes the hint. The conversation moves on."}
+    ]
+  },
+  cityNoticed:{
+    tag:"After The Blackout", npcName:"A Passerby",
+    text:"Grainy phone footage of you at the hospital is already spreading online by morning. A stranger stops you on the sidewalk. 'Hey — that was you last night, wasn't it?'",
+    choices:[
+      {label:"Own it. There's no point hiding it now.", align:{h:2,v:-1,g:0}, result:"Word spreads faster after that. People start looking for you on purpose."},
+      {label:"Play it off like they've got the wrong person.", align:{h:0,v:0,g:2}, result:"They look unconvinced, but let it drop."},
+      {label:"Tell them it's none of their business.", align:{h:-1,v:2,g:0}, result:"They back off fast. You've made yourself a little more feared than you meant to."}
+    ]
+  }
+};
 
 const FRESHMAN_FIGHT = {
   tag:"After-School Ambush", npcName:"Three Seniors", grantsPower:false, isFight:true,
@@ -385,48 +559,55 @@ const JUNIOR_BOSS = {
   name:"The Recruiter", npcName:"The Recruiter", grantsPower:true,
   intro:"The stranger from the parking lot wasn't working alone. Tonight, out past the courtyard fence, their whole crew is waiting — and they want to see, definitively, what you're made of.",
   rounds:[
-    { text:"Round 1 — They come in fast, testing your reflexes.",
+    { text:"The Recruiter opens fast — a flurry of strikes testing your reflexes.",
       choices:[
-        {label:"Meet force with precise, controlled force.", align:{h:5,v:-2,g:0}, result:"You hold the line without losing your temper."},
-        {label:"Overwhelm them completely, no restraint.", align:{h:-2,v:5,g:0}, result:"You hit harder than you needed to. It felt good anyway."},
-        {label:"Dodge and study their pattern instead of engaging.", align:{h:0,v:-2,g:5}, result:"You learn their weakness before they learn yours."}
+        {label:"Block clean and counter with control.", align:{h:5,v:-2,g:0}, result:"You hold the line without losing your temper."},
+        {label:"Drop the restraint and overwhelm them.", align:{h:-2,v:5,g:0}, result:"You hit harder than you needed to. It felt good anyway."},
+        {label:"Use {{POWER}} to read their rhythm and slip past.", align:{h:0,v:-2,g:5}, result:"You learn their weakness before they learn yours."}
       ]},
-    { text:"Round 2 — The Recruiter offers you an opening to walk away, if you 'join properly.'",
+    { text:"They lunge for a grapple, trying to pin you against the fence — then, mid-hold, murmur: 'Join properly, and this stops.'",
       choices:[
-        {label:"Refuse and press the advantage to end this now.", align:{h:5,v:-2,g:0}, result:"No deal. You push forward."},
-        {label:"Pretend to consider it, buying time to turn the tables.", align:{h:-1,v:2,g:3}, result:"A convincing lie. They almost believe you."},
-        {label:"Actually consider it — the offer isn't nothing.", align:{h:-2,v:5,g:0}, result:"Something in you leans toward yes. That scares you more than the fight does."}
+        {label:"Break the grapple and press the advantage. No deal.", align:{h:5,v:-2,g:0}, result:"No deal. You push forward."},
+        {label:"Feign hesitation to buy an opening.", align:{h:-1,v:2,g:3}, result:"A convincing lie. They almost believe you."},
+        {label:"Ease off and actually weigh the offer.", align:{h:-2,v:5,g:0}, result:"Something in you leans toward yes. That scares you more than the fight does."}
       ]},
-    { text:"Round 3 — The Recruiter is down, one shot from finished.",
+    { text:"The Recruiter's guard is broken — one hit from finished.",
       choices:[
-        {label:"Stop. Make sure they're alive, then call it in.", align:{h:6,v:-3,g:0}, result:"You choose restraint at the exact moment it's hardest."},
-        {label:"Finish it, no hesitation.", align:{h:-3,v:6,g:0}, result:"You cross a line tonight you won't be able to un-cross."},
-        {label:"Leave them for their own crew to find. Not your problem anymore.", align:{h:-1,v:-1,g:6}, result:"You vanish before sirens arrive. No one saw you. No one ever does."}
+        {label:"Pull the hit. Make sure they're alive, then call it in.", align:{h:6,v:-3,g:0}, result:"You choose restraint at the exact moment it's hardest."},
+        {label:"Finish it. No hesitation.", align:{h:-3,v:6,g:0}, result:"You cross a line tonight you won't be able to un-cross."},
+        {label:"Vanish before their crew even notices you're gone.", align:{h:-1,v:-1,g:6}, result:"You vanish before sirens arrive. No one saw you. No one ever does."}
       ]}
   ]
 };
 
+/* Graduation Night is the SCENE — the setting/title for the climax, used for the room
+   decorations and the chapter framing. It is not an opponent, and never gets its own HP bar.
+   The actual people you fight (round 2 onward) are named separately as `opponentName`, so the
+   HP bar always reads as fighting a person/group, never "damaging" the night itself. Round 1
+   is marked `noCombat` — evacuating a room isn't a fight, so no HP bar shows or moves for it. */
 const FINAL_BOSS = {
-  name:"Graduation Night", npcName:"Graduation Night", grantsPower:false,
-  intro:"Prom night. The gym is full of streamers and bad music — and then the power grid across three city blocks drops at once. Somewhere in the dark, the people you crossed this year have come to collect.",
+  name:"Graduation Night", npcName:"Graduation Night", npcType:"event", grantsPower:false,
+  opponentName:"The Collectors",
+  intro:"Graduation night. The gym is full of streamers and bad music — and then the power grid across three city blocks drops at once. Somewhere in the dark, the people you crossed this year have come to collect.",
   rounds:[
-    { text:"Round 1 — Panic spreads through the gym as the lights die.",
+    { text:"The lights die mid-song and the gym erupts into panicked shouting. Whatever's coming, it hasn't shown itself yet.",
+      noCombat:true,
       choices:[
         {label:"Get your classmates out safely, first, before anything else.", align:{h:6,v:-3,g:0}, result:"You clear the gym in under two minutes. Not one person hurt."},
         {label:"Head straight for whoever's responsible.", align:{h:-1,v:3,g:3}, result:"You leave the crowd behind. Some things matter more to you than a room full of strangers."},
         {label:"Use the chaos as cover to handle this your way, unseen.", align:{h:-2,v:-1,g:6}, result:"No one will ever know you were even here tonight."}
       ]},
-    { text:"Round 2 — You find them: the people you made enemies of this year, all in one place, waiting.",
+    { text:"The Collectors are waiting exactly where you left them last time — and this time, one breaks toward you before you can say a word.",
       choices:[
-        {label:"Try, one last time, to end this without anyone getting hurt.", align:{h:6,v:-3,g:0}, result:"It's not what they want to hear. You say it anyway."},
-        {label:"Give them exactly what they came looking for.", align:{h:-3,v:6,g:0}, result:"There's no pretending anymore about what you're willing to do."},
-        {label:"Fight smart — disable, don't destroy.", align:{h:-1,v:-1,g:6}, result:"Efficient. Controlled. Exactly your style by now."}
+        {label:"Block the rush and try, one last time, to end this clean.", align:{h:6,v:-3,g:0}, result:"It's not what they want to hear. You say it anyway."},
+        {label:"Meet them head-on and give them exactly what they came for.", align:{h:-3,v:6,g:0}, result:"There's no pretending anymore about what you're willing to do."},
+        {label:"Use {{POWER}} to disable, not destroy.", align:{h:-1,v:-1,g:6}, result:"Efficient. Controlled. Exactly your style by now."}
       ]},
-    { text:"Round 3 — The final confrontation, everything on the line, everyone watching by now.",
+    { text:"This is it — the last exchange, everyone watching by now, everything on the line.",
       choices:[
-        {label:"Save every person you can, whatever it costs you personally.", align:{h:8,v:-4,g:0}, result:"By dawn, the story is already spreading: someone saved this town tonight."},
-        {label:"Make sure your name is the one people fear from now on.", align:{h:-4,v:8,g:0}, result:"By dawn, the story is already spreading — and it isn't a kind one."},
-        {label:"Do what needs doing, then disappear before the sun comes up.", align:{h:-2,v:-2,g:8}, result:"By dawn, no one can even agree on what they saw, or who did it."}
+        {label:"Block, protect, and save every person you can — whatever it costs you.", align:{h:8,v:-4,g:0}, result:"By dawn, the story is already spreading: someone saved this town tonight."},
+        {label:"Go all-in. Make sure your name is the one people fear from now on.", align:{h:-4,v:8,g:0}, result:"By dawn, the story is already spreading — and it isn't a kind one."},
+        {label:"Use {{POWER}} to finish it and disappear before the sun comes up.", align:{h:-2,v:-2,g:8}, result:"By dawn, no one can even agree on what they saw, or who did it."}
       ]}
   ]
 };
@@ -455,19 +636,68 @@ const ROOMS = {
   home:{ name:"Home", width:900, kind:"home", doors:[{label:"Head Back to School", x:60, leadsTo:"hallway"}] }
 };
 
+/* Background chatter that reacts to your reputation. Each NPC has a neutral line (used
+   before your meter has moved anywhere meaningful) plus hero/villain/vigilante variants —
+   showBark() below picks based on your current lean, so the world around you visibly
+   responds to the kind of person your choices have been making you. */
 const AMBIENT_NPCS = {
   hallway:[
-    {name:"Devon", x:420, bark:"Locker 118's been stuck all week. Don't even ask."},
-    {name:"Kayla", x:1280, bark:"Did you finish the reading? ...Yeah, me neither."}
+    {name:"Devon", x:420, barkVariants:{
+      neutral:"Locker 118's been stuck all week. Don't even ask.",
+      hero:"Hey — thanks again for the other day. Seriously.",
+      villain:"...I'm gonna go the other way. No offense.",
+      vigilante:"Weird question — do you know anything about what happened last week? No? Okay."
+    }},
+    {name:"Kayla", x:1280, barkVariants:{
+      neutral:"Did you finish the reading? ...Yeah, me neither.",
+      hero:"Everyone's talking about you. Good talking, for once.",
+      villain:"People are saying you're not someone to cross. Is that... true?",
+      vigilante:"There's a rumor going around that things just get handled when you're near. No idea what that means."
+    }}
   ],
-  classroom:[ {name:"Ms. Alden", x:420, bark:"Take your seat, we're starting in two minutes."} ],
-  gym:[ {name:"Coach Reyes", x:460, bark:"Suit up. Drill starts in five, no exceptions."} ],
-  library:[ {name:"Priya", x:480, bark:"Shh. Also — have you seen the new locker assignments?"} ],
-  cafeteria:[ {name:"Marcus", x:460, bark:"You hear about the election recount? Wild."} ],
-  courtyard:[ {name:"A Freshman", x:440, bark:"Is it true seniors get their own parking spots?"} ],
-  home:[ {name:"Dad", x:520, bark:"Dinner's at six. Wash up first."} ]
+  classroom:[ {name:"Ms. Alden", x:420, barkVariants:{
+    neutral:"Take your seat, we're starting in two minutes.",
+    hero:"Glad to have you in this class. Genuinely.",
+    villain:"I've heard some things. I hope they're not true.",
+    vigilante:"You're a hard one to get a read on. Take your seat."
+  }} ],
+  gym:[ {name:"Coach Reyes", x:460, barkVariants:{
+    neutral:"Suit up. Drill starts in five, no exceptions.",
+    hero:"Good work out there lately. Keep it up.",
+    villain:"Watch yourself. I'm keeping an eye on you.",
+    vigilante:"You disappear a lot during drills. I'm choosing not to ask."
+  }} ],
+  library:[ {name:"Priya", x:480, barkVariants:{
+    neutral:"Shh. Also — have you seen the new locker assignments?",
+    hero:"Everyone here likes having you around. Just so you know.",
+    villain:"People lower their voices when you walk in now. You've noticed, right?",
+    vigilante:"Shh. Also — nobody can quite agree on what you actually did last week."
+  }} ],
+  cafeteria:[ {name:"Marcus", x:460, barkVariants:{
+    neutral:"You hear about the election recount? Wild.",
+    hero:"You're basically the reason half this school still trusts anyone. No pressure.",
+    villain:"People clear a table when you sit down now. That's a whole thing.",
+    vigilante:"Nobody can agree on whether you're the good kind of trouble or the bad kind."
+  }} ],
+  courtyard:[ {name:"A Freshman", x:440, barkVariants:{
+    neutral:"Is it true seniors get their own parking spots?",
+    hero:"Is it true you helped someone out here last year? That's so cool.",
+    villain:"Are you... the person everyone warns freshmen about? Please say no.",
+    vigilante:"Someone said weird stuff happens around you and nobody ever sees how. Is that true?"
+  }} ],
+  home:[ {name:"Dad", x:520, barkVariants:{
+    neutral:"Dinner's at six. Wash up first.",
+    hero:"Proud of you lately. Really. Dinner's at six.",
+    villain:"You've been distant. We should talk. Dinner's at six, though.",
+    vigilante:"You keep odd hours these days. Dinner's at six, if you're around."
+  }} ]
 };
 
+/* Each chapter's day-to-day events are independent vignettes (none of them reference each
+   other), so which order you hit them in can safely vary without contradicting anything —
+   truly shuffled every playthrough, like a gamebook where the page order changes but you
+   still read every page. The fight/boss step always stays last as the chapter's climax; the
+   Freshman origin event always stays first since it's the moment your powers actually start. */
 const CHAPTERS = [
   { name:"Freshman Year", intro:"First year. New building, new faces, and a body that's starting to do things it shouldn't.",
     steps:[
@@ -477,7 +707,9 @@ const CHAPTERS = [
       {room:"library", event:FRESHMAN_POOL[3]},
       {room:"classroom", event:FRESHMAN_POOL[4]},
       {room:"courtyard", event:FRESHMAN_FIGHT, isFight:true}
-    ]},
+    ],
+    pinnedFirst:[1], pinnedLast:[5]
+  },
   { name:"Sophomore Year", intro:"A year in, and the choices are starting to add up to something.",
     steps:[
       {room:"gym", event:SOPHOMORE_POOL[0]},
@@ -485,19 +717,25 @@ const CHAPTERS = [
       {room:"cafeteria", event:SOPHOMORE_POOL[2]},
       {room:"home", event:SOPHOMORE_POOL[3]},
       {room:"courtyard", event:SOPHOMORE_FIGHT, isFight:true}
-    ]},
+    ],
+    pinnedLast:[4]
+  },
   { name:"Junior Year", intro:"People are starting to notice. Some of them want something from you.",
     steps:[
       {room:"gym", event:JUNIOR_POOL[0]},
       {room:"courtyard", event:JUNIOR_POOL[1]},
       {room:"courtyard", event:JUNIOR_BOSS, isBoss:true}
-    ]},
+    ],
+    pinnedLast:[2]
+  },
   { name:"Senior Year", intro:"Last year. Whatever you've become by now, it's about to become official.",
     steps:[
       {room:"courtyard", event:SENIOR_POOL[0]},
       {room:"library", event:SENIOR_POOL[1]},
       {room:"gym", event:FINAL_BOSS, isBoss:true}
-    ]}
+    ],
+    pinnedLast:[2]
+  }
 ];
 
 /* ============================================================
@@ -507,14 +745,24 @@ const CHAPTERS = [
 let S = null;
 function newState(){
   return { name:"", gender:"", locationId:"", hero:10, villain:10, vigilante:10, powers:[], log:[],
-    appearance: defaultAppearance(), chapterIndex:0, stepIndex:0, day:1, room:"hallway", playerX:800,
-    doneAmbient:{} };
+    appearance: defaultAppearance(), chapterIndex:0, stepIndex:0, room:"hallway", playerX:800,
+    doneAmbient:{}, aliasName:"", chapterOrders:{} };
 }
 
+/* Every call to applyAlign() is the single choke point through which EVERY decision in
+   the game (small talk-it-out choices, fight rounds, boss rounds) passes. Centralizing the
+   meter refresh + on-screen feedback here guarantees no decision can update S.hero/villain/
+   vigilante without the visible meter and floaters reflecting it immediately. */
 function applyAlign(a){
+  const before = { hero:S.hero, villain:S.villain, vigilante:S.vigilante };
   S.hero = Math.max(1, S.hero + (a.h||0));
   S.villain = Math.max(1, S.villain + (a.v||0));
   S.vigilante = Math.max(1, S.vigilante + (a.g||0));
+  refreshMeterBar({
+    h: S.hero - before.hero,
+    v: S.villain - before.villain,
+    g: S.vigilante - before.vigilante
+  });
 }
 
 function pcts(){
@@ -526,22 +774,125 @@ function pcts(){
   };
 }
 
-function meterBarHTML(){
+function meterBarInnerHTML(){
   const p = pcts();
-  return `<div class="meter-bar">
-    <div class="meter hero"><div class="pct">${p.hero}%</div><div class="name">Hero</div><div class="meter-track"><div class="meter-fill" style="width:${p.hero}%"></div></div></div>
-    <div class="meter villain"><div class="pct">${p.villain}%</div><div class="name">Villain</div><div class="meter-track"><div class="meter-fill" style="width:${p.villain}%"></div></div></div>
-    <div class="meter vigilante"><div class="pct">${p.vigilante}%</div><div class="name">Vigilante</div><div class="meter-track"><div class="meter-fill" style="width:${p.vigilante}%"></div></div></div>
-  </div>`;
+  return `
+    <div class="meter hero"><div class="pct" id="mHeroPct">${p.hero}%</div><div class="name">Hero</div><div class="meter-track"><div class="meter-fill" id="mHeroFill" style="width:${p.hero}%"></div></div></div>
+    <div class="meter villain"><div class="pct" id="mVillainPct">${p.villain}%</div><div class="name">Villain</div><div class="meter-track"><div class="meter-fill" id="mVillainFill" style="width:${p.villain}%"></div></div></div>
+    <div class="meter vigilante"><div class="pct" id="mVigPct">${p.vigilante}%</div><div class="name">Vigilante</div><div class="meter-track"><div class="meter-fill" id="mVigFill" style="width:${p.vigilante}%"></div></div></div>
+  `;
+}
+
+/* Shows the persistent, always-on-top meter bar. It lives outside #app (appended to <body>)
+   so it stays visible even while a cutscene overlay (z-index 200) is covering the game —
+   the whole point being: the moment you tap a choice, you SEE the bar move. */
+function ensureMeterBar(){
+  let el = document.getElementById("meterBarFixed");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "meterBarFixed";
+    el.innerHTML = `<div id="meterBarInnerWrap"><div class="meter-bar" id="meterBarInner">${meterBarInnerHTML()}</div><div id="meterFloaters"></div></div>`;
+    document.body.appendChild(el);
+  }
+  el.style.display = "flex";
+  document.body.classList.add("has-meter-bar");
+  refreshMeterBar();
+  return el;
+}
+function hideMeterBar(){
+  const el = document.getElementById("meterBarFixed");
+  if(el) el.style.display = "none";
+  document.body.classList.remove("has-meter-bar");
+}
+
+function refreshMeterBar(delta){
+  const el = document.getElementById("meterBarFixed");
+  if(!el || el.style.display==="none") return;
+  const p = pcts();
+  setMeterCell("mHeroPct","mHeroFill",p.hero);
+  setMeterCell("mVillainPct","mVillainFill",p.villain);
+  setMeterCell("mVigPct","mVigFill",p.vigilante);
+  if(delta && (delta.h||delta.v||delta.g)) spawnMeterFloaters(delta);
+}
+function setMeterCell(pctId, fillId, val){
+  const pctEl = document.getElementById(pctId);
+  const fillEl = document.getElementById(fillId);
+  if(pctEl) pctEl.textContent = val+"%";
+  if(fillEl) fillEl.style.width = val+"%";
+}
+function spawnMeterFloaters(delta){
+  const wrap = document.getElementById("meterFloaters");
+  if(!wrap) return;
+  const defs = [
+    {k:"h", cls:"hero", label:"HERO"},
+    {k:"v", cls:"villain", label:"VILLAIN"},
+    {k:"g", cls:"vigilante", label:"VIGILANTE"}
+  ];
+  defs.forEach(d=>{
+    const val = delta[d.k];
+    if(!val) return;
+    const f = document.createElement("div");
+    f.className = "meter-float "+d.cls;
+    f.textContent = (val>0?"+":"")+val+" "+d.label;
+    wrap.appendChild(f);
+    setTimeout(()=>{ f.remove(); }, 1450);
+  });
 }
 
 function currentChapter(){ return CHAPTERS[S.chapterIndex]; }
-function currentStep(){ const ch = currentChapter(); return ch.steps[S.stepIndex] || null; }
+function leadingTrait(){
+  const p = pcts();
+  if(p.hero>=p.villain && p.hero>=p.vigilante) return "hero";
+  if(p.villain>=p.hero && p.villain>=p.vigilante) return "villain";
+  return "vigilante";
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+/* Decides — once per chapter, the first time it's needed — what order this chapter's events
+   play out in. pinnedFirst/pinnedLast stay put (the Freshman origin moment always opens the
+   game, the fight/boss always closes out the chapter); everything else is genuinely shuffled,
+   a different order every playthrough. Every event in the chapter still happens — like a
+   gamebook you can flip open to a different page first but still end up reading cover to
+   cover. */
+function ensureChapterOrder(idx){
+  if(S.chapterOrders[idx]) return S.chapterOrders[idx];
+  const ch = CHAPTERS[idx];
+  const pinnedFirst = ch.pinnedFirst || [];
+  const pinnedLast = ch.pinnedLast || [];
+  const reorderable = ch.steps.map((_,i)=>i).filter(i=>!pinnedFirst.includes(i) && !pinnedLast.includes(i));
+  const order = [...pinnedFirst, ...shuffle(reorderable), ...pinnedLast];
+  S.chapterOrders[idx] = order;
+  return order;
+}
+function currentStep(){
+  const ch = currentChapter();
+  const order = ensureChapterOrder(S.chapterIndex);
+  const idx = order[S.stepIndex];
+  return ch.steps[idx] || null;
+}
 
 /* ============================================================
    2D HUMAN CHARACTER DRAWING (FIXED TRANSLUCENCY & GRAPHICS)
    ============================================================ */
 
+/* Lightens (positive percent) or darkens (negative) a hex color — used throughout drawHuman
+   for simple gradient shading instead of flat fills, and for the ink-outline pass that gives
+   characters a cleaner "inked comic panel" look matching the rest of the UI's bold borders. */
+function shadeColor(hex, percent){
+  if(typeof hex !== "string" || hex.charAt(0) !== "#") hex = "#808080"; // safe fallback — never let a bad color crash the render loop
+  const f = parseInt(hex.slice(1),16);
+  const t = percent<0 ? 0 : 255;
+  const p = Math.abs(percent)/100;
+  const R = f>>16, G = (f>>8)&0x00FF, B = f&0x0000FF;
+  const nr = Math.round((t-R)*p)+R, ng = Math.round((t-G)*p)+G, nb = Math.round((t-B)*p)+B;
+  return "#"+(0x1000000+nr*0x10000+ng*0x100+nb).toString(16).slice(1);
+}
 function drawHuman(ctx, cx, groundY, scale, app, opts){
   opts = opts || {};
   const facing = opts.facing || 1;
@@ -551,6 +902,17 @@ function drawHuman(ctx, cx, groundY, scale, app, opts){
   const talking = !!opts.talking;
   const gesture = opts.gesture || "idle";
   const idlePhase = opts.idlePhase || 0;
+  const INK = "rgba(11,11,18,0.55)";
+  // Defense in depth: even if an appearance object comes in with a missing field (a bad NPC
+  // hash, a malformed save, whatever), fall back to a sane default instead of crashing the
+  // whole render loop over one NPC's hair color.
+  app = {
+    skin: app.skin || "#f0c39e",
+    hairColor: app.hairColor || "#3a2414",
+    hairStyle: app.hairStyle || "short",
+    outfitPrimary: app.outfitPrimary || "#2f5fb3",
+    outfitAccent: app.outfitAccent || "#f5c542"
+  };
 
   ctx.save();
   ctx.translate(cx, groundY);
@@ -562,47 +924,50 @@ function drawHuman(ctx, cx, groundY, scale, app, opts){
   const legLen = 46*scale, torsoH = 46*scale, torsoW = 30*scale, headR = 15*scale, armLen = 40*scale;
   const hipY = -legLen, torsoTopY = hipY - torsoH, shoulderY = torsoTopY + 6*scale, headCY = torsoTopY - headR - 3*scale;
 
-  // Ground shadow (Opaque blend layer)
-  ctx.fillStyle = "rgba(10, 10, 16, 0.4)";
+  // Ground shadow, soft-edged
+  const shadowGrad = ctx.createRadialGradient(0,3*scale,1,0,3*scale,20*scale);
+  shadowGrad.addColorStop(0,"rgba(10,10,16,0.42)");
+  shadowGrad.addColorStop(1,"rgba(10,10,16,0)");
+  ctx.fillStyle = shadowGrad;
   ctx.beginPath();
   ctx.ellipse(0, 3*scale, 20*scale, 5*scale, 0, 0, Math.PI*2);
   ctx.fill();
 
   const legSwing = walking ? Math.sin(walkPhase)*0.5 : 0;
-
-  // Opaque leg color replacing former translucent values
   const legColor = "#1a1a24";
   const bootColor = "#0d0d14";
 
   // Back leg
   drawLimb(ctx, -8*scale, hipY, legLen, 9*scale, legSwing, legColor);
-  // Back Boot
   ctx.fillStyle = bootColor;
   roundRect(ctx, -12*scale, hipY + legLen - 8*scale, 10*scale, 9*scale, 2*scale);
-  ctx.fill();
+  ctx.fill(); ctx.lineWidth=1.2; ctx.strokeStyle=INK; ctx.stroke();
 
-  // Torso & Suit Design
-  ctx.fillStyle = app.outfitPrimary;
+  // Torso — shaded gradient instead of a flat fill
+  const torsoGrad = ctx.createLinearGradient(-torsoW/2, torsoTopY, torsoW/2, torsoTopY+torsoH);
+  torsoGrad.addColorStop(0, shadeColor(app.outfitPrimary, 16));
+  torsoGrad.addColorStop(1, shadeColor(app.outfitPrimary, -14));
+  ctx.fillStyle = torsoGrad;
   roundRect(ctx, -torsoW/2, torsoTopY, torsoW, torsoH, 8*scale);
-  ctx.fill();
+  ctx.fill(); ctx.lineWidth=1.6; ctx.strokeStyle=INK; ctx.stroke();
 
-  // Chest Armor/Design highlight
+  // Chest accent stripe
   ctx.fillStyle = app.outfitAccent;
   roundRect(ctx, -torsoW/2+4*scale, torsoTopY+6*scale, torsoW-8*scale, 10*scale, 3*scale);
-  ctx.fill();
-  
+  ctx.fill(); ctx.lineWidth=1; ctx.strokeStyle=INK; ctx.stroke();
+
   // Belt
   ctx.fillStyle = "#111";
   ctx.fillRect(-torsoW/2 - 1*scale, hipY - 6*scale, torsoW + 2*scale, 5*scale);
   ctx.fillStyle = app.outfitAccent;
   ctx.fillRect(-4*scale, hipY - 6.5*scale, 8*scale, 6*scale);
+  ctx.lineWidth=1; ctx.strokeStyle=INK; ctx.strokeRect(-4*scale, hipY - 6.5*scale, 8*scale, 6*scale);
 
   // Front leg
   drawLimb(ctx, 8*scale, hipY, legLen, 9*scale, -legSwing, legColor);
-  // Front Boot
   ctx.fillStyle = bootColor;
   roundRect(ctx, 4*scale, hipY + legLen - 8*scale, 10*scale, 9*scale, 2*scale);
-  ctx.fill();
+  ctx.fill(); ctx.lineWidth=1.2; ctx.strokeStyle=INK; ctx.stroke();
 
   // Arms
   let armSwingL = walking ? -Math.sin(walkPhase)*0.5 : 0;
@@ -616,40 +981,87 @@ function drawHuman(ctx, cx, groundY, scale, app, opts){
   drawLimb(ctx, 14*scale, shoulderY, armLen, 8*scale, armSwingR, app.outfitPrimary);
 
   // Neck
-  ctx.fillStyle = app.skin;
+  ctx.fillStyle = shadeColor(app.skin, -10);
   ctx.fillRect(-5*scale, torsoTopY-6*scale, 10*scale, 8*scale);
 
-  // Head
-  ctx.beginPath(); ctx.arc(0, headCY, headR, 0, Math.PI*2); ctx.fillStyle = app.skin; ctx.fill();
+  // Head — subtle gradient for a little dimensionality
+  const headGrad = ctx.createRadialGradient(-4*scale, headCY-4*scale, 1, 0, headCY, headR+2*scale);
+  headGrad.addColorStop(0, shadeColor(app.skin, 14));
+  headGrad.addColorStop(1, shadeColor(app.skin, -8));
+  ctx.beginPath(); ctx.arc(0, headCY, headR, 0, Math.PI*2); ctx.fillStyle = headGrad; ctx.fill();
+  ctx.lineWidth=1.4; ctx.strokeStyle=INK; ctx.stroke();
 
-  // Face detailing (Eyes, Eyebrows & Mouth)
+  // Ear — drawn before hair so longer styles can fall naturally over/behind it
+  ctx.fillStyle = shadeColor(app.skin, -6);
+  ctx.beginPath(); ctx.ellipse(-headR+2.2*scale, headCY+1*scale, 2.3*scale, 3.3*scale, 0, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = shadeColor(app.skin, -26); ctx.lineWidth = 0.8*scale; ctx.stroke();
+
+  // Face — a real eye (white + pupil + lid line), brow, nose bridge, jaw shading, mouth
+  ctx.fillStyle = "#f5f1e6";
+  ctx.beginPath(); ctx.ellipse(5.6*scale, headCY-2*scale, 2.6*scale, 2*scale, 0, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = "#1c1c26";
-  ctx.beginPath(); ctx.arc(5*scale, headCY-2*scale, 1.8*scale, 0, Math.PI*2); ctx.fill();
-  
-  // Eyebrow
-  ctx.strokeStyle = "#1c1c26"; ctx.lineWidth = 1.2*scale;
-  ctx.beginPath(); ctx.moveTo(2*scale, headCY-6*scale); ctx.lineTo(8*scale, headCY-5*scale); ctx.stroke();
+  ctx.beginPath(); ctx.arc(6.1*scale, headCY-2*scale, 1.4*scale, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = shadeColor(app.skin,-30); ctx.lineWidth = 0.9*scale; ctx.lineCap="round";
+  ctx.beginPath(); ctx.moveTo(3.2*scale, headCY-3.7*scale); ctx.quadraticCurveTo(6*scale, headCY-4.7*scale, 8.6*scale, headCY-3.3*scale); ctx.stroke();
+
+  ctx.strokeStyle = "#1c1c26"; ctx.lineWidth = 1.2*scale; ctx.lineCap="round";
+  ctx.beginPath(); ctx.moveTo(2.4*scale, headCY-6.6*scale); ctx.lineTo(8.6*scale, headCY-5.6*scale); ctx.stroke();
+
+  ctx.strokeStyle = shadeColor(app.skin,-22); ctx.lineWidth = 1*scale;
+  ctx.beginPath(); ctx.moveTo(9.5*scale, headCY-2*scale); ctx.lineTo(8.5*scale, headCY+2.5*scale); ctx.stroke();
+
+  ctx.strokeStyle = shadeColor(app.skin,-16); ctx.lineWidth = 0.8*scale;
+  ctx.beginPath(); ctx.moveTo(-headR+3*scale, headCY+9*scale); ctx.quadraticCurveTo(2*scale, headCY+13*scale, 10*scale, headCY+8*scale); ctx.stroke();
 
   const mouthH = talking ? (Math.abs(Math.sin(talkPhase*9))*3.5*scale+1*scale) : 1.4*scale;
   ctx.fillStyle = "#7a3b3b";
   roundRect(ctx, 3*scale, headCY+5*scale, 7*scale, mouthH, 2*scale); ctx.fill();
 
-  // Enhanced Hair Rendering
-  ctx.fillStyle = app.hairColor;
-  if(app.hairStyle==="short"){
-    ctx.beginPath(); ctx.arc(0, headCY-1*scale, headR+1.8*scale, Math.PI*0.85, Math.PI*2.15); ctx.fill();
-  } else if(app.hairStyle==="long"){
-    ctx.beginPath(); ctx.arc(0, headCY-1*scale, headR+1.8*scale, Math.PI*0.85, Math.PI*2.15); ctx.fill();
-    roundRect(ctx, -headR-2*scale, headCY-2*scale, 7*scale, 32*scale, 4*scale); ctx.fill();
-    roundRect(ctx, headR-5*scale, headCY-2*scale, 7*scale, 32*scale, 4*scale); ctx.fill();
-  } else if(app.hairStyle==="mohawk"){
+  // Hair — eight real styles, built from shaded clumps/strands rather than one flat blob,
+  // so "short" and "long" read as real hair texture rather than a flat blob.
+  const hairBase = app.hairColor;
+  const hairHi = shadeColor(app.hairColor, 28);
+  ctx.fillStyle = hairBase;
+  const style = app.hairStyle;
+
+  if(style==="short"){
+    ctx.beginPath(); ctx.arc(0, headCY-1*scale, headR+1.7*scale, Math.PI*0.82, Math.PI*2.18); ctx.fill();
+    ctx.strokeStyle=INK; ctx.lineWidth=1.2; ctx.stroke();
+    drawHairClump(ctx, -6.5*scale, headCY-headR-0.4*scale, 3*scale, hairBase, hairHi, INK);
+    drawHairClump(ctx, 1*scale, headCY-headR-1.6*scale, 3.3*scale, hairBase, hairHi, INK);
+    drawHairClump(ctx, 8*scale, headCY-headR-0.3*scale, 2.8*scale, hairBase, hairHi, INK);
+
+  } else if(style==="long"){
+    ctx.beginPath(); ctx.arc(0, headCY-1*scale, headR+1.7*scale, Math.PI*0.82, Math.PI*2.18); ctx.fill();
+    ctx.strokeStyle=INK; ctx.lineWidth=1.2; ctx.stroke();
+    ctx.fillStyle = hairBase;
     ctx.beginPath();
-    ctx.moveTo(-4*scale, headCY-headR);
-    ctx.lineTo(4*scale, headCY-headR);
-    ctx.lineTo(3*scale, headCY-headR-12*scale);
-    ctx.lineTo(-3*scale, headCY-headR-12*scale);
+    ctx.moveTo(-headR-1*scale, headCY-3*scale);
+    ctx.quadraticCurveTo(-headR-9*scale, headCY+15*scale, -headR-3.5*scale, headCY+34*scale);
+    ctx.quadraticCurveTo(-headR+1.5*scale, headCY+20*scale, -headR+3*scale, headCY-2*scale);
     ctx.closePath(); ctx.fill();
+    ctx.strokeStyle=INK; ctx.lineWidth=1.1; ctx.stroke();
+    ctx.fillStyle = hairBase;
+    ctx.beginPath();
+    ctx.moveTo(headR+1*scale, headCY-3*scale);
+    ctx.quadraticCurveTo(headR+7.5*scale, headCY+15*scale, headR+2*scale, headCY+34*scale);
+    ctx.quadraticCurveTo(headR-3*scale, headCY+20*scale, headR-4*scale, headCY-2*scale);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle=INK; ctx.lineWidth=1.1; ctx.stroke();
+
+  } else if(style==="mohawk"){
+    for(let i=-1;i<=1;i++){
+      const spikeH = (11-Math.abs(i)*3)*scale;
+      ctx.beginPath();
+      ctx.moveTo(i*3.2*scale-2*scale, headCY-headR);
+      ctx.lineTo(i*3.2*scale+2*scale, headCY-headR);
+      ctx.lineTo(i*3.2*scale+1.1*scale, headCY-headR-spikeH);
+      ctx.lineTo(i*3.2*scale-1.1*scale, headCY-headR-spikeH);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle=INK; ctx.lineWidth=1; ctx.stroke();
+    }
   }
+  // "bald" intentionally draws nothing further — the scalp shading on the head fill is enough.
 
   ctx.restore();
 }
@@ -658,9 +1070,16 @@ function drawLimb(ctx, x, y, len, w, angle, color){
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle*0.5);
-  ctx.fillStyle = color;
+  const grad = ctx.createLinearGradient(-w/2, 0, w/2, 0);
+  grad.addColorStop(0, shadeColor(color, -18));
+  grad.addColorStop(0.55, color);
+  grad.addColorStop(1, shadeColor(color, -6));
+  ctx.fillStyle = grad;
   roundRect(ctx, -w/2, 0, w, len, w/2);
   ctx.fill();
+  ctx.lineWidth = Math.max(1, w*0.12);
+  ctx.strokeStyle = "rgba(11,11,18,0.5)";
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -668,6 +1087,17 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.beginPath();
   ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
   ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+/* A single shaded "clump" of hair — a small circle with a highlight and an ink outline.
+   Several of these overlapping is what gives curly/afro/short hair actual texture instead
+   of one flat silhouette shape. */
+function drawHairClump(ctx, cx, cy, r, baseColor, hiColor, ink){
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fillStyle = baseColor; ctx.fill();
+  ctx.lineWidth = Math.max(0.8, r*0.14); ctx.strokeStyle = ink; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx-r*0.32, cy-r*0.32, r*0.36, 0, Math.PI*2);
+  ctx.fillStyle = hiColor; ctx.fill();
 }
 
 function poseForChoice(c){
@@ -678,12 +1108,55 @@ function poseForChoice(c){
   return "heroic";
 }
 
+/* ---------- boss fight combat math ----------
+   Boss HP always reaches exactly 0 by the fight's final round (so the story always resolves),
+   but HOW it gets there — and how much you take back — really does depend on the pose of the
+   choice you picked: reckless/villainous trades land harder but cost more, stealthy/evasive
+   choices chip away slower but keep you safer, heroic/controlled choices sit in between. */
+function bossHpTargetAfterRound(totalRounds, roundIdx){
+  if(roundIdx >= totalRounds-1) return 0;
+  const remainingFrac = Math.pow(1-(roundIdx+1)/totalRounds, 1.3);
+  return Math.round(100*remainingFrac);
+}
+function poseDamageProfile(pose){
+  if(pose==="villainous") return { dealBonus:7, playerLoss:[15,22] };
+  if(pose==="stealthy") return { dealBonus:-3, playerLoss:[2,6] };
+  return { dealBonus:0, playerLoss:[7,11] }; // heroic / controlled
+}
+function randRange(a,b){ return Math.round(a + Math.random()*(b-a)); }
+
+/* Plays the hit out visually on whatever cutscene panel is currently open: a shake, a red
+   flash, and a floating damage number over the given HP track. */
+function triggerHitFX(){
+  const ov = document.getElementById("cutOverlay");
+  const panel = ov && ov.querySelector(".panel");
+  if(!panel) return;
+  panel.classList.remove("cut-shake");
+  void panel.offsetWidth;
+  panel.classList.add("cut-shake");
+  panel.style.position = "relative";
+  const flash = document.createElement("div");
+  flash.className = "hit-flash";
+  panel.appendChild(flash);
+  setTimeout(()=>{ flash.remove(); }, 460);
+}
+function spawnDmgFloat(trackId, amount, cls){
+  const track = document.getElementById(trackId);
+  if(!track || !amount) return;
+  const f = document.createElement("div");
+  f.className = "dmg-float "+cls;
+  f.textContent = "-"+amount;
+  track.appendChild(f);
+  setTimeout(()=>{ f.remove(); }, 1000);
+}
+
 /* ============================================================
    APP SHELL / SCREENS
    ============================================================ */
 const app = document.getElementById("app");
 
 function renderTitleScreen(){
+  hideMeterBar();
   app.innerHTML = `
     <div class="panel" style="text-align:center;">
       <h1 class="title">ORIGIN</h1>
@@ -805,17 +1278,32 @@ function drawCreatorPreview(){
   drawHuman(c, w/2, h*0.906, 2.1, S.appearance, {facing:1, idlePhase:creatorIdle, gesture:"idle"});
 }
 
+/* A short line reflecting your current lean, shown once per chapter (skipped for Freshman
+   Year since the meter hasn't moved yet) — the visible signal that the order and tone of
+   what's coming is responding to who you've been so far. */
+function chapterFlavorLine(){
+  if(S.chapterIndex===0) return "";
+  const lines = {
+    hero: "People already know you as someone who shows up for others — that's the year you're walking into.",
+    villain: "Word's gotten around about you. Not all of it kind. That's the year you're walking into.",
+    vigilante: "Nobody's quite sure what to make of you yet. That's exactly how this year opens."
+  };
+  return lines[leadingTrait()] || "";
+}
+
 function renderChapterIntro(){
   const ch = currentChapter();
+  const flavorLine = chapterFlavorLine();
   app.innerHTML = `
-    ${meterBarHTML()}
     <div class="panel">
       <div class="chapter-tag">${ch.name}</div>
       <h2 class="subtitle">${ch.name}</h2>
       <p>${ch.intro}</p>
+      ${flavorLine ? `<p class="flavor">${flavorLine}</p>` : ""}
       <p class="flavor">${objectiveText()}</p>
       <button class="primary" id="goBtn">Start Exploring</button>
     </div>`;
+  ensureMeterBar();
   document.getElementById("goBtn").onclick = renderGameScreen;
 }
 
@@ -823,8 +1311,11 @@ function objectiveText(){
   const step = currentStep();
   if(!step) return "🎯 Head to the Front Doors — the day is done.";
   const room = ROOMS[step.room];
-  const name = step.event.npcName || step.event.name || step.event.tag;
+  const e = step.event;
+  const name = e.npcName || e.name || e.tag;
   if(step.room==="home") return `🎯 Head home — something's waiting for you tonight.`;
+  if(e.npcType==="phone") return `🎯 Check your phone — in the ${room.name}`;
+  if(e.npcType==="event") return `🎯 Get to the ${room.name} — ${name} is starting`;
   return `🎯 Find ${name} — in the ${room.name}`;
 }
 
@@ -838,7 +1329,6 @@ let ambientBarkTimer = null, activeBark = null, barkFade = 0;
 
 function renderGameScreen(){
   app.innerHTML = `
-    ${meterBarHTML()}
     <div id="gameWrap">
       <div id="hud2">
         <div id="chapterLabel">${currentChapter().name}</div>
@@ -847,7 +1337,6 @@ function renderGameScreen(){
       <div id="canvasFrame">
         <canvas id="roomCanvas"></canvas>
         <div id="roomLabel"></div>
-        <div id="dayLabel">Day ${S.day}</div>
         <div id="cutOverlay" class="hidden"></div>
       </div>
       <div id="promptRow"><button id="promptBtn" class="hidden"></button></div>
@@ -858,6 +1347,7 @@ function renderGameScreen(){
       </div>
     </div>`;
 
+  ensureMeterBar();
   gcanvas = document.getElementById("roomCanvas");
   gctx = gcanvas.getContext("2d");
   dpr = Math.min(window.devicePixelRatio||1, 2);
@@ -898,8 +1388,6 @@ function room(){ return ROOMS[S.room]; }
 function updateRoomLabel(){
   const lbl = document.getElementById("roomLabel");
   if(lbl) lbl.textContent = room().name;
-  const dl = document.getElementById("dayLabel");
-  if(dl) dl.textContent = "Day "+S.day;
   const obj = document.getElementById("objective");
   if(obj) obj.textContent = objectiveText();
 }
@@ -957,7 +1445,12 @@ function updatePrompt(){
   if(!t){ btn.classList.add("hidden"); return; }
   btn.classList.remove("hidden");
   if(t.type==="door") btn.textContent = (t.data.leadsTo==="home"?"Leave School — ":"Enter ")+t.data.label.replace("Front Doors (Go Home)","Home").replace("Head Back to School","School");
-  else if(t.type==="event"){ const e = t.data.event; btn.textContent = "Talk to "+(e.npcName||e.name||e.tag); }
+  else if(t.type==="event"){
+    const e = t.data.event;
+    const label = e.npcName||e.name||e.tag;
+    const verb = e.npcType==="phone" ? "Check " : e.npcType==="event" ? "Head to " : "Talk to ";
+    btn.textContent = verb+label;
+  }
   else btn.textContent = "Talk to "+t.data.name;
 }
 function handleInteractPress(){
@@ -971,15 +1464,24 @@ function handleInteractPress(){
 function enterRoom(roomId){
   if(roomId==="hallway"){
     S.playerX = HALLWAY_DOOR_X[S.room] || 800;
-    if(S.room==="home" && S.chapterIndex>0) S.day++;
   } else {
     S.playerX = 140;
   }
   S.room = roomId;
   updateRoomLabel();
 }
+/* Picks which line an ambient NPC says based on how far your meter has actually moved from
+   its starting 10/10/10 tie — a small early lean doesn't change what people say yet, but a
+   real, sustained one does. */
 function showBark(npc){
-  activeBark = { name:npc.name, text:npc.bark };
+  let text = npc.bark;
+  if(npc.barkVariants){
+    const lead = leadingTrait();
+    const leadValue = S[lead];
+    const moved = leadValue - 10 >= 6; // meaningful, sustained lean — not just one choice
+    text = moved ? (npc.barkVariants[lead] || npc.barkVariants.neutral) : npc.barkVariants.neutral;
+  }
+  activeBark = { name:npc.name, text };
   barkFade = 3.2;
 }
 
@@ -998,38 +1500,77 @@ function toScreen(x){ return x - camX; }
 
 function drawRoomBackground(ctx, kind){
   ctx.fillStyle = "#d8cfb4"; ctx.fillRect(0,0,900,520);
-  
-  // Dynamic Floor & Atmosphere Colors
-  ctx.fillStyle = kind==="gym"?"#c98a4b":kind==="courtyard"?"#8fae6e":"#e3d9bd";
+
+  // Floor — gradient instead of flat fill, for a little depth
+  const floorBase = kind==="gym"?"#c98a4b":kind==="courtyard"?"#8fae6e":"#e3d9bd";
+  const floorGrad = ctx.createLinearGradient(0,360,0,520);
+  floorGrad.addColorStop(0, shadeColor(floorBase, 10));
+  floorGrad.addColorStop(1, shadeColor(floorBase, -12));
+  ctx.fillStyle = floorGrad;
   ctx.fillRect(0,360,900,160);
   ctx.strokeStyle = "rgba(0,0,0,0.08)"; ctx.lineWidth=2;
   for(let x=-camX%80; x<900; x+=80){ ctx.beginPath(); ctx.moveTo(x,360); ctx.lineTo(x,520); ctx.stroke(); }
-  
-  // Wall band gradient & lights
+  // Thin sheen where floor meets wall
+  ctx.fillStyle = "rgba(255,255,255,0.08)";
+  ctx.fillRect(0,358,900,4);
+
+  // Wall band gradient & soft overhead light pools
   const wallGrad = ctx.createLinearGradient(0,0,0,360);
-  if(kind==="courtyard"){ wallGrad.addColorStop(0,"#4e7fa8"); wallGrad.addColorStop(1,"#7ea1c9"); }
+  if(kind==="courtyard"){ wallGrad.addColorStop(0,"#4e7fa8"); wallGrad.addColorStop(0.7,"#6f97bf"); wallGrad.addColorStop(1,"#8fb0d4"); }
   else { wallGrad.addColorStop(0,"#9e926d"); wallGrad.addColorStop(1,"#beaf86"); }
-  
   ctx.fillStyle = wallGrad;
   ctx.fillRect(0,0,900,360);
+  if(kind!=="courtyard"){
+    for(let lx=90; lx<900; lx+=220){
+      const lg = ctx.createRadialGradient(lx,0,4,lx,40,150);
+      lg.addColorStop(0,"rgba(255,247,220,0.22)");
+      lg.addColorStop(1,"rgba(255,247,220,0)");
+      ctx.fillStyle = lg;
+      ctx.fillRect(lx-150,0,300,220);
+    }
+  }
   ctx.fillStyle = "rgba(0,0,0,0.06)";
   ctx.fillRect(0,340,900,20);
 
   const width = room().width;
   if(kind==="hallway"){
-    ctx.fillStyle = "rgba(0,0,0,0.05)";
+    ctx.fillStyle = "rgba(0,0,0,0.08)";
     for(let x=-camX; x<width-camX; x+=180){ roundRect(ctx,x+40,120,90,220,4); ctx.fill(); }
-    ctx.fillStyle = "#8f8365";
-    for(let x=-camX; x<width-camX; x+=180){ ctx.fillRect(x+40,120,90,220); }
-    for(let x=-camX; x<width-camX; x+=180){ for(let i=1;i<5;i++){ ctx.strokeStyle="rgba(0,0,0,0.15)"; ctx.beginPath(); ctx.moveTo(x+40+i*18,120); ctx.lineTo(x+40+i*18,340); ctx.stroke(); } }
+    for(let x=-camX; x<width-camX; x+=180){
+      const lg = ctx.createLinearGradient(x+40,120,x+130,340);
+      lg.addColorStop(0, "#9a8e6d"); lg.addColorStop(1, "#7d7255");
+      ctx.fillStyle = lg;
+      ctx.fillRect(x+40,120,90,220);
+      ctx.strokeStyle="rgba(0,0,0,0.2)"; ctx.lineWidth=2; ctx.strokeRect(x+40,120,90,220);
+      for(let i=1;i<5;i++){
+        ctx.strokeStyle="rgba(0,0,0,0.15)";
+        ctx.beginPath(); ctx.moveTo(x+40+i*18,120); ctx.lineTo(x+40+i*18,340); ctx.stroke();
+        ctx.fillStyle="#c9a24a";
+        ctx.beginPath(); ctx.arc(x+40+i*18-9,230,1.6,0,Math.PI*2); ctx.fill();
+      }
+    }
     ctx.fillStyle = "#f2ede1"; ctx.font="bold 13px Oswald, sans-serif"; ctx.textAlign="center";
     ctx.fillText("MAIN HALL", 450, 60);
   } else if(kind==="classroom"){
-    ctx.fillStyle = "#5a4636";
-    for(let r2=0;r2<3;r2++) for(let c2=0;c2<4;c2++){ const dx=260+c2*130, dy=200+r2*55; ctx.fillRect(dx,dy,60,26); ctx.fillRect(dx+22,dy+26,16,20); }
-    ctx.fillStyle = "#3c4a3c"; ctx.fillRect(80,60,240,150);
-    ctx.strokeStyle="#f2ede1"; ctx.lineWidth=2; ctx.strokeRect(80,60,240,150);
+    for(let r2=0;r2<3;r2++) for(let c2=0;c2<4;c2++){
+      const dx=260+c2*130, dy=200+r2*55;
+      const dg = ctx.createLinearGradient(dx,dy,dx+60,dy+26);
+      dg.addColorStop(0,"#6a5646"); dg.addColorStop(1,"#4a3a2e");
+      ctx.fillStyle = dg;
+      ctx.fillRect(dx,dy,60,26); ctx.fillRect(dx+22,dy+26,16,20);
+      ctx.strokeStyle="rgba(0,0,0,0.25)"; ctx.lineWidth=1; ctx.strokeRect(dx,dy,60,26);
+    }
+    const boardGrad = ctx.createLinearGradient(80,60,320,210);
+    boardGrad.addColorStop(0,"#3f4d3f"); boardGrad.addColorStop(1,"#2c382c");
+    ctx.fillStyle = boardGrad; ctx.fillRect(80,60,240,150);
+    ctx.strokeStyle="#f2ede1"; ctx.lineWidth=6; ctx.strokeRect(80,60,240,150);
+    ctx.strokeStyle="rgba(242,237,225,0.55)"; ctx.lineWidth=2; ctx.lineCap="round";
+    ctx.beginPath(); ctx.moveTo(105,95); ctx.lineTo(190,95); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(105,120); ctx.lineTo(260,120); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(105,145); ctx.lineTo(220,145); ctx.stroke();
   } else if(kind==="gym"){
+    ctx.fillStyle="rgba(0,0,0,0.18)";
+    for(let i=0;i<4;i++){ ctx.fillRect(50, 130+i*24, 800, 10); }
     ctx.strokeStyle="rgba(255,255,255,0.6)"; ctx.lineWidth=3;
     ctx.strokeRect(60,380,780,90);
     ctx.beginPath(); ctx.moveTo(450,380); ctx.lineTo(450,470); ctx.stroke();
@@ -1037,7 +1578,12 @@ function drawRoomBackground(ctx, kind){
     ctx.strokeStyle="#5a4636"; ctx.lineWidth=6;
     ctx.beginPath(); ctx.moveTo(110,120); ctx.lineTo(110,190); ctx.stroke();
     ctx.strokeStyle="#c1272d"; ctx.beginPath(); ctx.arc(110,195,22,Math.PI,Math.PI*2); ctx.stroke();
-    if(S.promMode){
+    // scoreboard
+    ctx.fillStyle="#14141f"; roundRect(ctx,760,90,110,50,4); ctx.fill();
+    ctx.strokeStyle="#f5c542"; ctx.lineWidth=2; roundRect(ctx,760,90,110,50,4); ctx.stroke();
+    ctx.fillStyle="#e8757c"; ctx.font="bold 16px 'Bangers', cursive"; ctx.textAlign="center";
+    ctx.fillText("HOME 00", 815, 120);
+    if(S.graduationMode){
       const t = performance.now()/500;
       for(let i=0;i<10;i++){ ctx.fillStyle=["#f5c542","#c1272d","#2f5fb3","#7b5ea7"][i%4]; ctx.fillRect(70+i*82, 40+Math.sin(t+i)*8, 6, 40); }
       ctx.fillStyle="#f2ede1"; ctx.font="bold 20px Bangers, cursive"; ctx.textAlign="center"; ctx.fillText("GRADUATION NIGHT", 450, 90);
@@ -1045,27 +1591,87 @@ function drawRoomBackground(ctx, kind){
       ctx.fillStyle="#f2ede1"; ctx.font="bold 13px Oswald, sans-serif"; ctx.textAlign="center"; ctx.fillText("GYMNASIUM", 450, 60);
     }
   } else if(kind==="library"){
-    ctx.fillStyle = "#5a4636";
-    for(let i=0;i<5;i++){ ctx.fillRect(90+i*150,90,120,220); }
-    ctx.fillStyle="#c9b98a";
-    for(let i=0;i<5;i++) for(let s2=0;s2<6;s2++){ ctx.fillRect(96+i*150, 96+s2*34, 108, 26); }
+    for(let i=0;i<5;i++){
+      const sg = ctx.createLinearGradient(90+i*150,90,90+i*150+120,310);
+      sg.addColorStop(0,"#6a5646"); sg.addColorStop(1,"#453729");
+      ctx.fillStyle = sg;
+      ctx.fillRect(90+i*150,90,120,220);
+      ctx.strokeStyle="rgba(0,0,0,0.3)"; ctx.lineWidth=1; ctx.strokeRect(90+i*150,90,120,220);
+    }
+    const bookColors = ["#c1272d","#2f5fb3","#7b5ea7","#1f8a4c","#e0a318","#1e8a8a"];
+    let bc = 0;
+    for(let i=0;i<5;i++) for(let s2=0;s2<6;s2++){
+      const bx = 96+i*150, by = 96+s2*34;
+      let cursor = 0;
+      while(cursor < 108){
+        const bw = 6 + (bc%4)*3;
+        ctx.fillStyle = bookColors[bc%bookColors.length];
+        ctx.fillRect(bx+cursor, by, Math.min(bw,108-cursor), 26);
+        cursor += bw+1; bc++;
+      }
+    }
     ctx.fillStyle="#f2ede1"; ctx.font="bold 13px Oswald, sans-serif"; ctx.textAlign="center"; ctx.fillText("LIBRARY", 450, 60);
   } else if(kind==="cafeteria"){
-    ctx.fillStyle = "#8f8365";
-    for(let i=0;i<4;i++){ roundRect(ctx,150+i*160,220,110,110,8); ctx.fill(); }
+    for(let i=0;i<4;i++){
+      const tx=150+i*160, ty=220;
+      ctx.fillStyle="rgba(0,0,0,0.15)"; roundRect(ctx,tx+4,ty+6,110,110,8); ctx.fill();
+      const tg = ctx.createLinearGradient(tx,ty,tx+110,ty+110);
+      tg.addColorStop(0, shadeColor("#8f8365",12)); tg.addColorStop(1, shadeColor("#8f8365",-14));
+      ctx.fillStyle = tg;
+      roundRect(ctx,tx,ty,110,110,8); ctx.fill();
+      ctx.strokeStyle="rgba(0,0,0,0.25)"; ctx.lineWidth=2; roundRect(ctx,tx,ty,110,110,8); ctx.stroke();
+    }
     ctx.fillStyle="#f2ede1"; ctx.font="bold 13px Oswald, sans-serif"; ctx.textAlign="center"; ctx.fillText("CAFETERIA", 450, 60);
   } else if(kind==="courtyard"){
-    ctx.fillStyle="#6b8f52"; ctx.beginPath(); ctx.arc(200,300,50,0,Math.PI*2); ctx.fill();
+    const sun = ctx.createRadialGradient(760,60,4,760,60,90);
+    sun.addColorStop(0,"rgba(255,241,190,0.9)"); sun.addColorStop(1,"rgba(255,241,190,0)");
+    ctx.fillStyle = sun; ctx.fillRect(670,0,180,180);
+    ctx.fillStyle="rgba(255,255,255,0.55)";
+    [[220,90,34],[260,100,26],[300,88,30]].forEach(cl=>{ ctx.beginPath(); ctx.ellipse(cl[0],cl[1],cl[2],14,0,0,Math.PI*2); ctx.fill(); });
+    ctx.fillStyle="rgba(0,0,0,0.16)"; ctx.beginPath(); ctx.ellipse(200,352,44,9,0,0,Math.PI*2); ctx.fill();
     ctx.fillStyle="#7a5a3a"; ctx.fillRect(196,300,8,60);
-    ctx.fillStyle="#3a3a44";
-    for(let i=0;i<5;i++) ctx.fillRect(560+i*70,250,50,110);
+    [[200,290,44],[180,300,32],[222,302,32],[200,270,36]].forEach(cl=>{
+      ctx.fillStyle = "#6b8f52"; ctx.beginPath(); ctx.arc(cl[0],cl[1],cl[2],0,Math.PI*2); ctx.fill();
+    });
+    ctx.fillStyle="rgba(255,255,255,0.12)"; ctx.beginPath(); ctx.arc(188,278,14,0,Math.PI*2); ctx.fill();
+    for(let i=0;i<5;i++){
+      const cx2 = 560+i*70;
+      const cg = ctx.createLinearGradient(cx2,250,cx2+50,360);
+      cg.addColorStop(0,"#4a4a56"); cg.addColorStop(1,"#2c2c36");
+      ctx.fillStyle = cg; ctx.fillRect(cx2,250,50,110);
+      ctx.strokeStyle="rgba(0,0,0,0.3)"; ctx.lineWidth=1; ctx.strokeRect(cx2,250,50,110);
+    }
+    ctx.fillStyle="#3a3a44"; ctx.fillRect(60,340,6,90);
+    ctx.fillStyle="#f5c542"; ctx.beginPath(); ctx.arc(63,338,9,0,Math.PI*2); ctx.fill();
     ctx.fillStyle="#f2ede1"; ctx.font="bold 13px Oswald, sans-serif"; ctx.textAlign="center"; ctx.fillText("COURTYARD / LOT", 450, 60);
   } else if(kind==="home"){
-    ctx.fillStyle = "#6b5642"; ctx.fillRect(500,120,260,180);
+    ctx.fillStyle="rgba(0,0,0,0.15)"; ctx.fillRect(496,116,268,188);
+    const houseGrad = ctx.createLinearGradient(500,120,500,300);
+    houseGrad.addColorStop(0,"#7c6650"); houseGrad.addColorStop(1,"#5a4936");
+    ctx.fillStyle = houseGrad; ctx.fillRect(500,120,260,180);
+    ctx.strokeStyle="rgba(0,0,0,0.3)"; ctx.lineWidth=2; ctx.strokeRect(500,120,260,180);
+    const glow = ctx.createRadialGradient(590,180,4,590,180,70);
+    glow.addColorStop(0,"rgba(255,214,140,0.55)"); glow.addColorStop(1,"rgba(255,214,140,0)");
+    ctx.fillStyle = glow; ctx.fillRect(520,120,140,120);
     ctx.fillStyle = "#3f3a52"; ctx.fillRect(560,150,60,60);
+    ctx.strokeStyle="#14141f"; ctx.lineWidth=3; ctx.strokeRect(560,150,60,60);
+    ctx.beginPath(); ctx.moveTo(590,150); ctx.lineTo(590,210); ctx.moveTo(560,180); ctx.lineTo(620,180); ctx.stroke();
     ctx.fillStyle = "#8f8365"; roundRect(ctx,120,230,180,90,10); ctx.fill();
+    ctx.strokeStyle="rgba(0,0,0,0.2)"; ctx.lineWidth=2; roundRect(ctx,120,230,180,90,10); ctx.stroke();
     ctx.fillStyle="#f2ede1"; ctx.font="bold 13px Oswald, sans-serif"; ctx.textAlign="center"; ctx.fillText("HOME", 450, 60);
   }
+
+  drawVignette(ctx);
+}
+
+/* Subtle darkening at the frame edges — cheap, cinematic, and helps the flat canvas art read
+   less like a UI mockup and more like a lit scene. */
+function drawVignette(ctx){
+  const vg = ctx.createRadialGradient(450,300,180,450,300,560);
+  vg.addColorStop(0,"rgba(0,0,0,0)");
+  vg.addColorStop(1,"rgba(0,0,0,0.22)");
+  ctx.fillStyle = vg;
+  ctx.fillRect(0,0,900,520);
 }
 
 function drawDoors(ctx){
@@ -1108,13 +1714,20 @@ function drawFlaggedNpc(ctx){
   if(!step || step.room!==S.room) return;
   const x = flaggedX(); const sx = toScreen(x);
   const e = step.event;
+  const type = e.npcType || "person";
   const pulse = 0.5+0.5*Math.sin(performance.now()/260);
   ctx.save();
   ctx.globalAlpha = 0.3+0.25*pulse;
   ctx.fillStyle = "#f5c542";
   ctx.beginPath(); ctx.ellipse(sx, 412, 36+pulse*5, 11, 0, 0, Math.PI*2); ctx.fill();
   ctx.restore();
-  drawHuman(ctx, sx, 410, 2.8, npcAppearance(e.npcName||e.name||e.tag), {facing:-1, idlePhase:performance.now()/700, gesture:"idle"});
+  if(type==="phone"){
+    drawPhoneProp(ctx, sx, 410, pulse);
+  } else if(type==="event"){
+    drawEventBeacon(ctx, sx, 410, pulse);
+  } else {
+    drawHuman(ctx, sx, 410, 2.8, npcAppearance(e.npcName||e.name||e.tag), {facing:-1, idlePhase:performance.now()/700, gesture:"idle"});
+  }
   const label = e.npcName||e.name||e.tag;
   ctx.font="700 11px Oswald, sans-serif"; ctx.textAlign="center";
   const tw = ctx.measureText(label).width;
@@ -1125,6 +1738,38 @@ function drawFlaggedNpc(ctx){
   const bob = Math.sin(performance.now()/260)*4;
   ctx.fillStyle="#f5c542"; ctx.font="bold 26px Bangers, cursive"; ctx.textAlign="center";
   ctx.fillText("!", sx, 210+bob);
+}
+/* A phone buzzing on a locker/desk — not a person, so it never gets a human figure. */
+function drawPhoneProp(ctx, sx, groundY, pulse){
+  ctx.save();
+  ctx.translate(sx, groundY-8);
+  ctx.fillStyle="rgba(10,10,16,0.35)";
+  ctx.beginPath(); ctx.ellipse(0, 8, 20, 5, 0, 0, Math.PI*2); ctx.fill();
+  ctx.shadowColor="#7ea1e8"; ctx.shadowBlur=14+pulse*8;
+  ctx.fillStyle="#14141f";
+  roundRect(ctx, -15, -58, 30, 56, 7); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.fillStyle="#7ea1e8";
+  ctx.globalAlpha = 0.55+pulse*0.4;
+  roundRect(ctx, -11, -53, 22, 42, 3); ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.fillStyle="#0d0d14";
+  ctx.beginPath(); ctx.arc(0, -8, 2, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+/* A pulsing marker for a story beat that isn't a person (e.g. prom/graduation night). */
+function drawEventBeacon(ctx, sx, groundY, pulse){
+  ctx.save();
+  ctx.translate(sx, groundY);
+  ctx.strokeStyle="#f5c542"; ctx.lineWidth=3;
+  ctx.shadowColor="#f5c542"; ctx.shadowBlur=16+pulse*8;
+  ctx.beginPath(); ctx.moveTo(0,-4); ctx.lineTo(0,-72); ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.fillStyle="#f5c542";
+  ctx.globalAlpha = 0.85+pulse*0.15;
+  ctx.beginPath(); ctx.moveTo(0,-72); ctx.lineTo(28,-60); ctx.lineTo(0,-48); ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.restore();
 }
 function drawPlayer(ctx){
   const sx = toScreen(S.playerX);
@@ -1142,15 +1787,19 @@ function drawBarkBubble(ctx){
 }
 
 const NPC_LOOKS = {};
+/* Fixed: the hash previously used signed right-shift (>>), which for large hash values could
+   go negative and produce an out-of-range (undefined) array index — silently breaking a
+   specific NPC's colors depending on their name. Unsigned shift (>>>) guarantees a valid
+   non-negative index every time. */
 function npcAppearance(name){
   if(!NPC_LOOKS[name]){
     let h=0; for(let i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) >>> 0;
     NPC_LOOKS[name] = {
       skin: SKIN_TONES[h%SKIN_TONES.length],
-      hairColor: HAIR_COLORS[(h>>3)%HAIR_COLORS.length],
-      hairStyle: HAIR_STYLES[(h>>5)%HAIR_STYLES.length],
-      outfitPrimary: OUTFIT_COLORS[(h>>7)%OUTFIT_COLORS.length],
-      outfitAccent: ACCENT_COLORS[(h>>9)%ACCENT_COLORS.length]
+      hairColor: HAIR_COLORS[(h>>>3)%HAIR_COLORS.length],
+      hairStyle: HAIR_STYLES[(h>>>5)%HAIR_STYLES.length],
+      outfitPrimary: OUTFIT_COLORS[(h>>>7)%OUTFIT_COLORS.length],
+      outfitAccent: ACCENT_COLORS[(h>>>9)%ACCENT_COLORS.length]
     };
   }
   return NPC_LOOKS[name];
@@ -1203,11 +1852,14 @@ function startEventCutscene(e, step){
   `);
   const pc = document.getElementById("pcPortrait").getContext("2d");
   const nc = document.getElementById("npcPortrait").getContext("2d");
+  const type = e.npcType || "person";
   let t0 = performance.now();
   const anim = setInterval(()=>{
     const t = (performance.now()-t0)/1000;
     paintPortrait(pc, S.appearance, true, t);
-    paintPortrait(nc, npcAppearance(npcName), false, t);
+    if(type==="phone") paintPhonePortrait(nc, t);
+    else if(type==="event") paintEventPortrait(nc, t);
+    else paintPortrait(nc, npcAppearance(npcName), false, t);
   }, 60);
 
   const dlg = document.getElementById("dlgText");
@@ -1233,17 +1885,60 @@ function paintPortrait(ctx, appear, talking, t){
   ctx.fillStyle = g; ctx.fillRect(0,0,200,260);
   drawHuman(ctx, 100, 235, 1.7, appear, {facing:1, idlePhase:t*1.6, talking, talkPhase:t*6, gesture: talking?"talk":"idle"});
 }
+/* Used instead of paintPortrait whenever the "other side" of a scene is a phone, not a person. */
+function paintPhonePortrait(ctx, t){
+  ctx.clearRect(0,0,200,260);
+  const g = ctx.createLinearGradient(0,0,0,260);
+  g.addColorStop(0,"#3a4a68"); g.addColorStop(1,"#22283a");
+  ctx.fillStyle = g; ctx.fillRect(0,0,200,260);
+  const pulse = 0.5+0.5*Math.sin(t*4);
+  ctx.save();
+  ctx.translate(100,140);
+  ctx.shadowColor="#7ea1e8"; ctx.shadowBlur=20+pulse*10;
+  ctx.fillStyle="#14141f";
+  roundRect(ctx,-42,-78,84,156,14); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.fillStyle="#7ea1e8";
+  ctx.globalAlpha = 0.6+pulse*0.35;
+  roundRect(ctx,-34,-68,68,118,6); ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.fillStyle="#14141f";
+  ctx.beginPath(); ctx.arc(0,60,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="rgba(11,11,18,0.85)";
+  roundRect(ctx,-30,-58,60,20,4); ctx.fill();
+  ctx.fillStyle="#f5c542"; ctx.font="bold 10px Oswald, sans-serif"; ctx.textAlign="center";
+  ctx.fillText("ALERT", 0, -44);
+  ctx.restore();
+}
+/* Used instead of paintPortrait whenever the "other side" of a scene is an event, not a person. */
+function paintEventPortrait(ctx, t){
+  ctx.clearRect(0,0,200,260);
+  const g = ctx.createLinearGradient(0,0,0,260);
+  g.addColorStop(0,"#3a2a4a"); g.addColorStop(1,"#22283a");
+  ctx.fillStyle = g; ctx.fillRect(0,0,200,260);
+  const pulse = 0.5+0.5*Math.sin(t*3);
+  for(let i=0;i<3;i++){
+    ctx.fillStyle = ["#f5c542","#c1272d","#2f5fb3"][i];
+    ctx.globalAlpha = 0.55+0.3*Math.sin(t*3+i);
+    ctx.fillRect(52+i*44, 50+Math.sin(t*2+i)*10, 9, 70);
+  }
+  ctx.globalAlpha = 1;
+  ctx.fillStyle="#f2ede1"; ctx.font="bold 15px Bangers, cursive"; ctx.textAlign="center";
+  ctx.fillText("GRADUATION NIGHT", 100, 200+pulse*2);
+}
 
 function resolveChoice(e, c, step){
   applyAlign(c.align);
+  const pose = poseForChoice(c);
   let grantedPower = null;
   if(e.grantsPower){
-    const pid = rollPower(S.locationId, S.powers);
+    const pid = e.originPower
+      ? ORIGIN_POWER_BY_LOCATION[S.locationId]
+      : pickPowerByFlavor(S.locationId, pose==="villainous"?"villain":pose==="stealthy"?"vigilante":"hero", S.powers);
     S.powers.push(pid);
     grantedPower = POWERS[pid];
   }
   S.log.push({chapter:currentChapter().name, tag:e.tag, choice:c.label, align:c.align});
-  const pose = poseForChoice(c);
   openCut(`
     <div class="chapter-tag">${e.tag}</div>
     <div class="cut-solo"><canvas id="soloPortrait" width="300" height="380"></canvas></div>
@@ -1268,7 +1963,77 @@ function resolveChoice(e, c, step){
   document.getElementById("contBtn").onclick = ()=>{
     clearInterval(anim);
     closeCut();
-    advanceStep(step);
+    if(c.sideScene && SIDE_SCENES[c.sideScene]){
+      playSideScene(SIDE_SCENES[c.sideScene], ()=>advanceStep(step));
+    } else {
+      advanceStep(step);
+    }
+  };
+}
+
+/* Plays a bonus follow-up scene triggered by a specific earlier choice. Structurally it's
+   just like a single event cutscene (portraits, dialogue, choices, a result beat) but it
+   isn't tied to any room or chapter step — it just happens, then hands control back via
+   onDone() so the main story continues exactly where it left off. */
+function playSideScene(scene, onDone){
+  const npcName = scene.npcName || scene.tag;
+  openCut(`
+    <div class="chapter-tag">${scene.tag}</div>
+    <div class="stage-row">
+      <div class="stage-portrait"><canvas id="pcPortraitSide" width="200" height="260"></canvas><div class="who">${S.name||"You"}</div></div>
+      <div class="stage-portrait"><canvas id="npcPortraitSide" width="200" height="260"></canvas><div class="who">${npcName}</div></div>
+    </div>
+    <p class="dialogue-box" id="dlgTextSide"></p>
+    <div class="choices" id="choiceWrapSide"></div>
+  `);
+  const pc = document.getElementById("pcPortraitSide").getContext("2d");
+  const nc = document.getElementById("npcPortraitSide").getContext("2d");
+  let t0 = performance.now();
+  const anim = setInterval(()=>{
+    const t = (performance.now()-t0)/1000;
+    paintPortrait(pc, S.appearance, true, t);
+    paintPortrait(nc, npcAppearance(npcName), false, t);
+  }, 60);
+  const dlg = document.getElementById("dlgTextSide");
+  const wrap = document.getElementById("choiceWrapSide");
+  typewriter(dlg, scene.text, 15, ()=>{
+    scene.choices.forEach(c=>{
+      const b = document.createElement("button");
+      b.className = "choice"; b.textContent = c.label;
+      b.onclick = ()=>{ clearInterval(anim); resolveSideChoice(scene, c, onDone); };
+      wrap.appendChild(b);
+    });
+  });
+  dlg.onclick = ()=>{ if(dlg.dataset.done!=="1") dlg._skip(); };
+}
+function resolveSideChoice(scene, c, onDone){
+  applyAlign(c.align);
+  S.log.push({chapter:currentChapter().name, tag:scene.tag, choice:c.label, align:c.align});
+  const pose = poseForChoice(c);
+  openCut(`
+    <div class="chapter-tag">${scene.tag}</div>
+    <div class="cut-solo"><canvas id="soloPortraitSide" width="300" height="380"></canvas></div>
+    <p class="flavor" id="resultTextSide"></p>
+    <button class="primary" id="contBtnSide" disabled>Continue</button>
+  `);
+  const sc = document.getElementById("soloPortraitSide").getContext("2d");
+  let t0 = performance.now();
+  const anim = setInterval(()=>{
+    const t = (performance.now()-t0)/1000;
+    sc.clearRect(0,0,300,380);
+    const g = sc.createLinearGradient(0,0,0,380);
+    g.addColorStop(0, pose==="villainous"?"#5a2020":pose==="stealthy"?"#2a2a3a":"#20365a");
+    g.addColorStop(1,"#14141f");
+    sc.fillStyle = g; sc.fillRect(0,0,300,380);
+    drawHuman(sc, 150, 340, 2.5, S.appearance, {facing:1, idlePhase:t*1.2, gesture:pose});
+  }, 60);
+  const rt = document.getElementById("resultTextSide");
+  typewriter(rt, c.result, 16, ()=>{ document.getElementById("contBtnSide").disabled=false; });
+  rt.onclick = ()=>{ if(rt.dataset.done!=="1") rt._skip(); };
+  document.getElementById("contBtnSide").onclick = ()=>{
+    clearInterval(anim);
+    closeCut();
+    onDone();
   };
 }
 
@@ -1277,7 +2042,7 @@ function advanceStep(step){
   if(S.stepIndex >= currentChapter().steps.length){
     S.chapterIndex++;
     S.stepIndex = 0;
-    if(S.chapterIndex >= CHAPTERS.length){ renderFinale(); return; }
+    if(S.chapterIndex >= CHAPTERS.length){ renderAliasCreator(); return; }
     stopGameLoop();
     renderChapterIntro();
     return;
@@ -1286,10 +2051,19 @@ function advanceStep(step){
 }
 
 /* ---------- boss / fight (multi-round) ---------- */
+/* Replaces any {{POWER}} token in boss-round text with the name of your most recently
+   unlocked power (falling back to a generic phrase if you somehow have none yet) — so combat
+   choices can reference the actual ability you're playing as, not a generic placeholder. */
+function resolvePowerToken(text){
+  if(!text || !text.includes("{{POWER}}")) return text;
+  const name = S.powers.length ? POWERS[S.powers[S.powers.length-1]].name : "your instincts";
+  return text.replace(/\{\{POWER\}\}/g, name);
+}
+
 function startBossCutscene(boss){
   boss._round = boss._round || 0;
   const step = currentStep();
-  if(boss.name==="Graduation Night") S.promMode = true;
+  if(boss.name==="Graduation Night") S.graduationMode = true;
   openCut(`
     <div class="chapter-tag">Confrontation</div>
     <h2 class="subtitle">${boss.name}</h2>
@@ -1321,27 +2095,45 @@ function paintSoloIdle(){
 }
 function renderBossRound(boss, step){
   if(boss._round >= boss.rounds.length){
-    S.promMode = false;
+    S.graduationMode = false;
     boss._round = 0;
+    boss._bossHP = undefined;
+    boss._playerHP = undefined;
     clearInterval(soloAnimTimer);
     closeCut();
     advanceStep(step);
     return;
   }
   const round = boss.rounds[boss._round];
-  const hpPct = Math.max(8, 100-(boss._round/boss.rounds.length)*72);
+  const isCombat = !round.noCombat;
+  if(isCombat){
+    if(boss._bossHP===undefined){
+      boss._bossHP = 100; boss._playerHP = 100;
+    } else if(boss._round>0){
+      boss._playerHP = Math.min(100, boss._playerHP + 6); // a little recovery going into the next exchange
+    }
+  }
+  // The HP bar names the actual opponent you're fighting (boss.opponentName) rather than the
+  // scene's title (boss.name) — "Graduation Night" is the night this happens on, not who you
+  // fight. Non-combat rounds (evacuating people, etc.) show no HP bars at all: nobody's being
+  // hit yet, so nothing should read like a hit landed.
+  const opponentLabel = boss.opponentName || boss.name;
+  const hpHTML = isCombat ? `
+    <div class="hp-row"><div class="hp-label">${opponentLabel}</div><div class="hp-track" id="bossHpTrack"><div class="hp-fill boss" id="bossHpFill" style="width:${boss._bossHP}%"></div></div></div>
+    <div class="hp-row"><div class="hp-label">You</div><div class="hp-track" id="playerHpTrack"><div class="hp-fill player" id="playerHpFill" style="width:${boss._playerHP}%"></div></div></div>
+  ` : "";
   openCut(`
     <div class="chapter-tag">${boss.name}</div>
-    <div class="hp-row"><div class="hp-label">${boss.name}</div><div class="hp-track"><div class="hp-fill" style="width:${hpPct}%"></div></div></div>
+    ${hpHTML}
     <p class="dialogue-box" id="dlgText2"></p>
     <div class="choices" id="choiceWrap2"></div>
   `);
   const dlg = document.getElementById("dlgText2");
   const wrap = document.getElementById("choiceWrap2");
-  typewriter(dlg, round.text, 15, ()=>{
+  typewriter(dlg, resolvePowerToken(round.text), 15, ()=>{
     round.choices.forEach(c=>{
       const b = document.createElement("button");
-      b.className="choice"; b.textContent=c.label;
+      b.className="choice"; b.textContent=resolvePowerToken(c.label);
       b.onclick = ()=>resolveBossChoice(boss, round, c, step);
       wrap.appendChild(b);
     });
@@ -1349,16 +2141,59 @@ function renderBossRound(boss, step){
   dlg.onclick = ()=>{ if(dlg.dataset.done!=="1") dlg._skip(); };
 }
 function resolveBossChoice(boss, round, c, step){
-  applyAlign(c.align);
-  S.log.push({chapter:currentChapter().name, tag:boss.name, choice:c.label, align:c.align});
-  let grantedPower = null;
-  if(boss.grantsPower && boss._round===0){
-    const pid = rollPower(S.locationId, S.powers);
-    S.powers.push(pid);
-    grantedPower = POWERS[pid];
-  }
-  boss._round++;
+  const isCombat = !round.noCombat;
   const pose = poseForChoice(c);
+
+  if(!isCombat){
+    // A non-combat round (e.g. getting people to safety before any fight starts): the choice
+    // still shapes your meter and gets logged, but there's no opponent HP to move and no hit
+    // to fake — nothing here pretends a fight is already happening.
+    applyAlign(c.align);
+    S.log.push({chapter:currentChapter().name, tag:boss.name, choice:c.label, align:c.align});
+    boss._round++;
+    showBossResultScreen(boss, step, c, pose, null);
+    return;
+  }
+
+  const profile = poseDamageProfile(pose);
+  const totalRounds = boss.rounds.length;
+  const roundIdx = boss._round;
+  const target = bossHpTargetAfterRound(totalRounds, roundIdx);
+  const dealt = Math.min(boss._bossHP, Math.max(4, (boss._bossHP - target) + profile.dealBonus));
+  const bossHpBefore = boss._bossHP;
+  boss._bossHP = Math.max(0, boss._bossHP - dealt);
+  const dealtDisplay = bossHpBefore - boss._bossHP;
+  const playerLoss = randRange(profile.playerLoss[0], profile.playerLoss[1]);
+  boss._playerHP = Math.max(15, boss._playerHP - playerLoss);
+
+  // Play the hit out on the round screen that's already on-screen before switching views —
+  // this is the actual "combat payoff": real HP dropping, a shake, a flash, damage numbers.
+  const bossFill = document.getElementById("bossHpFill");
+  const playerFill = document.getElementById("playerHpFill");
+  if(bossFill) bossFill.style.width = boss._bossHP+"%";
+  if(playerFill) playerFill.style.width = boss._playerHP+"%";
+  spawnDmgFloat("bossHpTrack", dealtDisplay, "boss");
+  spawnDmgFloat("playerHpTrack", playerLoss, "player");
+  triggerHitFX();
+  document.querySelectorAll("#choiceWrap2 .choice").forEach(b=>{ b.disabled = true; });
+
+  setTimeout(()=>{
+    applyAlign(c.align);
+    S.log.push({chapter:currentChapter().name, tag:boss.name, choice:c.label, align:c.align});
+    let grantedPower = null;
+    if(boss.grantsPower && boss._round===0){
+      const pid = pickPowerByFlavor(S.locationId, pose==="villainous"?"villain":pose==="stealthy"?"vigilante":"hero", S.powers);
+      S.powers.push(pid);
+      grantedPower = POWERS[pid];
+    }
+    boss._round++;
+    showBossResultScreen(boss, step, c, pose, grantedPower);
+  }, 650);
+}
+/* Shared "aftermath" screen for a boss round — your reaction pose, the result text, and any
+   power granted. Used by both combat and non-combat rounds so the flow feels identical either
+   way even though only one of them actually moved an HP bar. */
+function showBossResultScreen(boss, step, c, pose, grantedPower){
   openCut(`
     <div class="chapter-tag">${boss.name}</div>
     <div class="cut-solo"><canvas id="soloPortrait" width="300" height="380"></canvas></div>
@@ -1402,19 +2237,65 @@ function getTitleInfo(){
   return { title: prefix+top.name, cls: top.cls, pct: top.val };
 }
 function locName(){ return LOCATIONS.find(l=>l.id===S.locationId).name; }
-function pronoun(){ return S.gender==="Female" ? "she" : "he"; }
-function possessive(){ return S.gender==="Female" ? "her" : "his"; }
 
+/* Finds whichever single choice pushed hardest toward your final ending, so the finale can
+   call back to something you specifically chose rather than speaking only in generalities. */
+function mostDefiningChoice(cls){
+  const key = cls==="hero" ? "h" : cls==="villain" ? "v" : "g";
+  let best = null, bestVal = 0;
+  S.log.forEach(entry=>{
+    const val = (entry.align && entry.align[key]) || 0;
+    if(val > bestVal){ bestVal = val; best = entry; }
+  });
+  return best;
+}
+function lowerFirst(s){ return s ? s.charAt(0).toLowerCase()+s.slice(1) : s; }
+
+/* The whole game speaks to "you" in second person — the ending does the same, instead of
+   switching to third-person ("he"/"she"/S.name") like it used to. The one name revealed here
+   is the alias chosen in renderAliasCreator(), collected only after the story is fully over
+   so it fits however the run actually turned out. */
 function buildOriginStory(info){
   const powerNames = S.powers.map(id=>POWERS[id].name);
   const powerText = powerNames.length ? powerNames.join(", ") : "abilities still not fully understood";
   const bigMoments = S.log.filter(l=>l.tag===JUNIOR_BOSS.name || l.tag===FINAL_BOSS.name);
   const firstBig = bigMoments[0];
   let arc = "";
-  if(info.cls==="hero") arc = `By graduation, there was no question left. ${S.name} had spent four years choosing, again and again, to put other people first — until it stopped being a choice and started being who ${pronoun()} was.`;
-  else if(info.cls==="villain") arc = `By graduation, ${S.name} had stopped pretending otherwise. Every shortcut, every score settled, every line crossed had led here — and ${pronoun()} walked toward it without flinching.`;
-  else arc = `By graduation, ${S.name} had learned to work in the space between the rules — never quite hero, never quite villain, just the person who showed up when no one else could, and vanished before anyone could ask questions.`;
-  return `${S.name} grew up in ${locName()}, an ordinary student until freshman-year instincts and a gym-class accident said otherwise. What emerged was ${powerText}. ${arc} ${firstBig ? `The turning point came the night ${possessive()} path crossed The Recruiter's — a choice ${pronoun()} still thinks about.` : ""} Today, ${S.name} graduates not just from high school, but into whatever comes next: ${info.title.toLowerCase()}, ${info.pct}% certain, and still writing the rest of the story.`;
+  if(info.cls==="hero") arc = `By graduation, there was no question left. You'd spent four years choosing, again and again, to put other people first — until it stopped being a choice and started being who you were.`;
+  else if(info.cls==="villain") arc = `By graduation, you'd stopped pretending otherwise. Every shortcut, every score settled, every line crossed had led here — and you walked toward it without flinching.`;
+  else arc = `By graduation, you'd learned to work in the space between the rules — never quite hero, never quite villain, just the person who showed up when no one else could, and vanished before anyone could ask questions.`;
+  const turningPoint = firstBig ? ` The turning point came the night your path crossed The Recruiter's — a choice you still think about.` : "";
+  const defining = mostDefiningChoice(info.cls);
+  const definingLine = defining ? ` If one moment sums up how you got here, it's "${defining.tag}" — the day you chose to ${lowerFirst(defining.choice).replace(/\.$/,"")}.` : "";
+  return `You grew up in ${locName()}, an ordinary student until freshman-year instincts and a gym-class accident said otherwise. What emerged was ${powerText}. ${arc}${turningPoint}${definingLine} Today you graduate — not just from high school, but into whatever comes next. ${S.name} walks out these doors one last time, but the name people will remember is ${S.aliasName}: ${info.title.toLowerCase()}, ${info.pct}% certain, and still writing the rest of the story.`;
+}
+
+/* Runs once, after the very last choice of the game (win, lose, or anywhere in between) and
+   before the verdict is revealed — so naming your alias always happens at the end, and always
+   happens no matter which of the three endings you landed on. */
+function renderAliasCreator(){
+  stopGameLoop();
+  window.onkeydown=null; window.onkeyup=null;
+  hideMeterBar();
+  const info = getTitleInfo();
+  app.innerHTML = `
+    <div class="panel" style="text-align:center;">
+      <div class="chapter-tag">Graduation Night</div>
+      <h2 class="subtitle">One Last Thing</h2>
+      <p>Whatever you've become, people are going to need something to call you. This is the name that goes down in the story — pick it now.</p>
+      <div class="stamp-wrap"><div class="stamp ${info.cls}" style="animation:none; transform:rotate(-6deg) scale(1);">${info.title}<span class="sub">${info.pct}% CERTAIN</span></div></div>
+      <fieldset style="text-align:left; max-width:360px; margin:0 auto;">
+        <legend>Your Name</legend>
+        <input type="text" id="aliasInput" placeholder="e.g. Nightglass, The Warden, Ivy Cole..." maxlength="24">
+      </fieldset>
+      <button class="primary" id="aliasBtn" disabled style="max-width:360px; margin-left:auto; margin-right:auto;">Seal the Story</button>
+    </div>`;
+  const input = document.getElementById("aliasInput");
+  const btn = document.getElementById("aliasBtn");
+  input.oninput = ()=>{ btn.disabled = !input.value.trim(); };
+  input.addEventListener("keydown", e=>{ if(e.key==="Enter" && input.value.trim()) btn.click(); });
+  input.focus();
+  btn.onclick = ()=>{ S.aliasName = input.value.trim(); renderFinale(); };
 }
 
 function renderFinale(){
@@ -1422,11 +2303,11 @@ function renderFinale(){
   const info = getTitleInfo();
   const origin = buildOriginStory(info);
   window.onkeydown=null; window.onkeyup=null;
+  hideMeterBar();
   app.innerHTML = `
-    ${meterBarHTML()}
     <div class="panel" style="text-align:center;">
       <div class="chapter-tag">Graduation Night</div>
-      <h2 class="subtitle">Your Verdict</h2>
+      <h2 class="subtitle">${S.aliasName}</h2>
       <div class="stamp-wrap"><div class="stamp ${info.cls}">${info.title}<span class="sub">${info.pct}% CERTAIN</span></div></div>
       <div class="cut-solo"><canvas id="finalPortrait" width="300" height="380"></canvas></div>
       <div class="final-pcts">
